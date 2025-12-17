@@ -1,1 +1,1 @@
-![BAWK Programming Logo](/images/BAWK Logo.png)
+![BAWK Programming Logo](/images/BAWK_Logo.png)
