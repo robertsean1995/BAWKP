@@ -26,8 +26,8 @@
   - [1a Mental Model](#1a-mental-model)
 - [2 General-Purpose Programming with BAWK](#2-general-purpose-programming-with-bawk)
 - [3 Object Orientation with BAWK](#3-object-orientation-with-bawk)
-- [4 Separation of Duties](#4-separation-of-duties)
-- [5 Readability and Survival](#5-readability-and-survival)
+- [4 Readability and Survival](#4-readability-and-survival)
+- [5 Separation of Technical Duties](#5-separation-of-technical-duties)
 - [6 Structure, Syntax, and Semantics](#6-structure-syntax-and-semantics)
   - [6a Discipline as a Consequence](#6a-discipline-as-a-consequence)
   - [6b Structure and Formatting](#6b-structure-and-formatting)
@@ -77,11 +77,11 @@ Object-oriented programming is often reduced to surface features—classes, inhe
 
 In practice, this model yields many of the benefits people seek from OOP—readability, maintainability, controlled complexity, and safer change—without pretending that Bash is secretly an OOP language. BAWK does not claim that object orientation emerges automatically from syntax; it claims that object orientation can be enforced as design discipline even in a constrained environment, and that this discipline is especially valuable in the domains BAWK targets. When scripts grow into tooling, when operations become multi-stage workflows, and when correctness must survive hostile inputs and rushed debugging, the ability to reason in terms of responsibility-bearing units and explicit contracts is not a stylistic preference—it is a survival trait. BAWK expresses the core object-oriented concerns of encapsulation, responsibility-bound behavior, interfaces, and polymorphism through disciplined structure and explicit contracts, while intentionally avoiding inheritance in favor of composition.
 
-# 4 Separation of Duties
+# 4 Readability and Survival
 
 <br>
 
-# 5 Readability and Survival
+# 5 Separation of Technical Duties
 
 <br>
 
