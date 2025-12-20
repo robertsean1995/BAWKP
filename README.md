@@ -30,6 +30,7 @@
 - [5 Separation of Technical Duties](#5-separation-of-technical-duties)
 - [6 Structure, Syntax, and Semantics](#6-structure-syntax-and-semantics)
   - [6a Discipline as a Consequence](#6a-discipline-as-a-consequence)
+      - [Integrated Development Environment](#integrated-development-environment)
   - [6b Structure and Formatting](#6b-structure-and-formatting)
   - [6c Efficiency as a Design Constraint](#6c-efficiency-as-a-design-constraint)
   - [6d Antipatterns and Hard Rules](#6d-antipatterns-and-hard-rules)
@@ -90,6 +91,10 @@ In practice, this model yields many of the benefits people seek from OOP—reada
 <br>
 
 ## 6a Discipline as a Consequence
+
+<br>
+
+### Integrated Development Environment
 
 <br>
 
