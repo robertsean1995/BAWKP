@@ -88,7 +88,62 @@ The rule that emerges from this analysis is intentionally blunt: if a Bash scrip
 
 # 5 Separation of Technical Duties
 
-<br>
+The separation of technical duties in BAWK is where this methodology becomes enforceable. Earlier sections establish that Bash controls orchestrations while AWK controls computation, but that distinction only matters if it materially changes how scripts are written. This section exists to demonstrate that change in practice. In BAWK, separation of duties is not a stylistic preference; it is the mechanism that prevents shell scripts from collapsing into pipelines whose behavior cannot be trusted once they grow beyond trivial size.
+
+A common failure mode in conventional shell scripting is allowing Bash to interpret data directly. Line-by-line loops, ad-hoc conditionals, and incremental string munging all seem reasonable until expansion rules and quoting subtleties turn intent into accident. A typical example looks harmless:
+
+```
+count=0
+while read -r line; do
+    if [[ $line == *ERROR* ]]; then
+        ((count++))
+    fi
+done < logfile
+```
+
+This code “works,” but it violates the BAWK boundary. Bash is interpreting text, applying pattern logic, and accumulating meaning. It is slow, fragile, and tightly coupled to shell semantics. In BAWK, this is a design error, not an optimization opportunity. The same responsibility, expressed correctly, moves computation into AWK and leaves Bash to orchestrate:
+
+```
+count=$(
+    awk '/ERROR/ { count++ } END { print count }' logfile
+)
+```
+
+Here the boundary is explicit. Bash coordinates execution and captures the result. AWK owns the interpretation of the data stream. The improvement is not merely conciseness; it is correctness. AWK evaluates records deterministically, without shell expansion, and the meaning of “an ERROR line” is centralized in one place. This distinction becomes more important as logic grows. In non-BAWK scripts, it is common to scatter meaning across chains of grep, sed, and formatting commands, each making small, implicit assumptions about the data. For example:
+
+```
+grep -v '^#' input.csv |
+grep ',[0-9]\+,' |
+sed 's/[[:space:]]//g' |
+cut -d',' -f1,2,3
+```
+
+The intent here is already difficult to reconstruct, and the semantics are distributed across four tools. In BAWK, this fragmentation is avoided by treating AWK as the primary text processing engine. Matching, transformation, validation, and formatting are all expressions of meaning and belong together:
+
+```
+awk -F',' '
+    /^[[:space:]]*#/ { next }
+
+    $3 ~ /^[[:space:]]*[0-9]+[[:space:]]*$/ {
+        gsub(/[[:space:]]+/, "", $3)
+        printf "%s,%s,%d\n", $1, $2, $3
+    }
+' input.csv
+```
+
+This is not about eliminating grep or sed for ideological reasons. It is about coherence. One processor owns the definition of valid input, how it is cleaned, and what output shape is produced. The script has a single point of truth for what the data means.
+
+At the same time, BAWK is explicit about where AWK’s authority ends. AWK is treated as a lexer and transformer for line-oriented data, not as a general parser. When the input is structured (e.g. JSON, YAML, or any format whose semantics are not line-based) attempting to interpret it with AWK is a correctness failure, even if it appears to work on sample data. In those cases, BAWK establishes a hard boundary and delegates parsing to an external tool, then hands a normalized projection back to AWK for computation:
+
+```
+some_tool --json |
+jq -r '.items[] | [.id, .severity] | @tsv' |
+awk -F'\t' '$2 >= 7 { print $1 }'
+```
+
+The separation here is deliberate. The structured parser owns structure. AWK owns record-level meaning. Bash orchestrates the flow. No layer pretends to understand data it cannot reliably interpret. And Bash was chosen *because* of how close it works with command-line utilities in Unix, so use them. 
+
+This separation is non-negotiable because without it, the methodology loses its defining property: survivability. Bash provides almost no protection against misuse, and scripts frequently run with real power—modifying filesystems, interacting with networks, or operating under elevated privileges. When meaning is implicit or scattered, errors do not announce themselves; they execute. BAWK counters this reality by forcing meaning into AWK, where it is explicit and local, and by forcing control into Bash, where execution can be reasoned about structurally.
 
 # 6 Structure, Syntax, and Semantics
 
