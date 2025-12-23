@@ -29,7 +29,7 @@
 - [4 Readability and Survival](#4-readability-and-survival)
 - [5 Separation of Technical Duties](#5-separation-of-technical-duties)
 - [6 Structure, Syntax, and Semantics](#6-structure-syntax-and-semantics)
-  - [6a Discipline as a Consequence](#6a-discipline-as-a-consequence)
+  - [6a Integrated Development Environment](#6a-integrated-development-environment)
   - [6b Structure and Formatting](#6b-structure-and-formatting)
   - [6c Efficiency as a Design Constraint](#6c-efficiency-as-a-design-constraint)
   - [6d Antipatterns and Hard Rules](#6d-antipatterns-and-hard-rules)
@@ -93,7 +93,7 @@ The separation of technical duties in BAWK is where this methodology becomes enf
 
 ```
 count=0
-while read -r line; do
+while IFS= read -r line; do
     if [[ $line == *ERROR* ]]; then
         ((count++))
     fi
@@ -118,7 +118,6 @@ warnings=0
 
 while IFS= read -r line; do
     [[ $line == \#* ]] && continue
-
     if [[ $line == *ERROR* ]]; then
         ((errors++))
     elif [[ $line == *WARN* ]]; then
@@ -134,9 +133,11 @@ printf 'errors=%d warnings=%d\n' "$errors" "$warnings"
 ```
 read errors warnings < <(
     awk '
-        /^[[:space:]]*#/ { next }
-        /ERROR/ { errors++ }
-        /WARN/  { warnings++ }
+        /^#/ { next }
+        {
+            if ($0 ~ /ERROR/) errors++
+            else if ($0 ~ /WARN/) warnings++
+        }
         END { print errors, warnings }
     ' logfile
 )
@@ -238,13 +239,9 @@ The separation here is deliberate. The structured parser owns structure. AWK own
 
 # 6 Structure, Syntax, and Semantics
 
-<br>
+Bash is responsible for orchestration; AWK is responsible for computation. The preceding sections explained the philosophy of this methodology, including a technical representation of the separation of duties between Bash and AWK. This section will explain and specify how that philosophy is applied and enforced in practice. What follows is not guidance, preference, or stylistic advice, but a rulebook derived directly from the BAWK contract: Bash is responsible for orchestration, state, and control flow; AWK is responsible for interpreting, transforming, and aggregating line-oriented data; and specialist tools are responsible for structured parsing and domain-specific work. These roles are exclusive, and violations are treated as design errors rather than stylistic disagreements. The rules in this section exist to preserve readability, correctness, and survivability as scripts grow, change, and are executed under operational pressure. A script that adheres to these rules qualifies as a BAWK program; a script that does not may still function, but it no longer conforms to the methodology.
 
-## 6a Discipline as a Consequence
-
-<br>
-
-### Integrated Development Environment
+## 6a Integrated Development Environment
 
 <br>
 
