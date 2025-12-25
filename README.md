@@ -243,7 +243,45 @@ Bash is responsible for orchestration; AWK is responsible for computation. The p
 
 ## 6a Integrated Development Environment
 
-<br>
+Because BAWK relies on explicit structure and clear separation of responsibility, the Integrated Development Environment ("IDE") that's used is an integral part of the methodology’s enforcement surface. A properly-configured editor reduces accidental violations of the BAWK contract by making unsafe constructs visible early and by enforcing consistent structure automatically. In practice, this means the IDE is treated as a policy gate for formatting, static analysis, and readability checks. Policies that are applied continuously rather than after failures occur. For BAWK, the primary IDE of choice is [Visual Studio Code ("VS Code")](https://code.visualstudio.com/) due to its simplicity, language support, available extensions, integrated terminal, and customizability. For VS Code, BAWK requires only a small number of extensions, but they should be configured strictly. The goal is not to optimize typing speed or developer comfort, but to preserve clarity, predictability, and survivability as scripts grow and are revisited under operational pressure. Below is a consolidated list of requirements that are considered "non-negotiable" for BAWKP. 
+
+**Required Extensions**
+
+The following VS Code extensions facilitate BAWKP development
+
+- **ShellCheck (Timon Wong).** Acts as the primary static analysis tool for Bash. ShellCheck surfaces quoting errors, unsafe expansions, brittle patterns, and semantic traps that often pass casual testing. Warnings are treated as actionable findings rather than optional suggestions.
+
+- **shfmt (Martin Kühl).** Serves as the authoritative formatter for Bash. In BAWK, formatting is not cosmetic; it is a correctness tool. Consistent indentation, spacing, and layout make control flow and scope visible and reduce the likelihood of visual bugs.
+
+- **AWK Language Support (Donald Mull Jr.).** Provides syntax highlighting and basic language ergonomics for AWK. Since AWK is the primary computation engine in BAWK, its code must be readable and reviewable rather than hidden inside opaque one-liners.
+
+**Editor Configuration**
+
+The following VS Code settings improve BAWKP development and help enforce the methodology:
+
+- **Enable “Format on Save” for shell scripts.** Formatting drift should be corrected immediately, not deferred. If saving a file changes its structure, that change should be visible and intentional.
+
+- **Render whitespace and indentation guides.** Visible whitespace helps catch accidental alignment errors and makes block structure obvious. This is particularly important for nested conditionals, case statements, and multi-line command substitutions.
+
+- **Trim trailing whitespace and insert a final newline.** These settings keep diffs clean, reduce noise in reviews, and preserve structural clarity across environments.
+
+- **Use four (4) spaces only for indentation.** Tabs introduce invisible variation. Consistent space-based indentation ensures layout remains predictable across editors and viewers.
+
+- **Set a soft line-length guide (e.g. 100–120 characters).** Long pipelines and embedded AWK programs should be broken intentionally. A visible ruler encourages readable formatting rather than horizontal sprawl.
+
+- **Enable bracket-pair colorization and matching.** Bash and AWK both rely heavily on nested blocks. Visual pairing makes structural errors easier to spot before execution.
+
+- **Use Bash explicitly in the integrated terminal.** Ensure the terminal explicitly runs Bash so interactive testing matches script execution semantics.
+
+**Workflow Tweaks**
+
+- **Treat ShellCheck warnings as build failures unless explicitly documented.** Suppressions should be rare and justified with comments explaining why the rule does not apply.
+
+- **Keep AWK programs multi-line and named when they exceed trivial size.** If an AWK block requires explanation, it should be formatted as code, not compressed into a one-liner.
+
+- **Prefer editor tasks or shortcuts for running ShellCheck and formatting scripts.** Enforcement should be frictionless; violations should be annoying, not invisible.
+
+The objective of this setup is simple: the editor should actively push the developer toward the BAWK contract. Unsafe Bash constructs become obvious, formatting errors are corrected automatically, and AWK logic remains readable as first-class program logic rather than incidental text processing. When the IDE enforces these constraints continuously, discipline ceases to be a matter of personal vigilance and becomes a property of the environment itself.
 
 ## 6b Structure and Formatting
 
@@ -259,4 +297,4 @@ Bash is responsible for orchestration; AWK is responsible for computation. The p
 
 # 7 Conclusion
 
-At the end of the day, you are just learning Bash and AWK. This methodology was created as a unique way to combine both into a unified approach for offensive security engineers and people looking at using existing tools in slightly different ways. 
+At the end of the day, you are just learning Bash and AWK. This methodology was created as a unique way to combine both into a unified approach for offensive security engineers, penetration testers, ethical hackers, and people looking at using existing tools in slightly different ways. 
