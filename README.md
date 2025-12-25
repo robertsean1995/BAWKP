@@ -89,7 +89,7 @@ The rule that emerges from this analysis is intentionally blunt: if a Bash scrip
 
 The separation of technical duties in BAWK is where this methodology becomes enforceable. Earlier sections establish that Bash controls orchestrations while AWK controls computation, but that distinction only matters if it materially changes how scripts are written. This section exists to demonstrate that change in practice. In BAWK, separation of duties is not a stylistic preference; it is the mechanism that prevents shell scripts from collapsing into pipelines whose behavior cannot be trusted once they grow beyond trivial size. Below are three examples of what BAWK can solve. 
 
-1. **Bash interpreting data instead of orchestration it.** A common failure mode in conventional shell scripting is allowing Bash to interpret data directly. Line-by-line loops, ad-hoc conditionals, and incremental string munging all seem reasonable until expansion rules and quoting subtleties turn intent into accident. A typical example looks harmless:
+- **Bash interpreting data instead of orchestration it.** A common failure mode in conventional shell scripting is allowing Bash to interpret data directly. Line-by-line loops, ad-hoc conditionals, and incremental string munging all seem reasonable until expansion rules and quoting subtleties turn intent into accident. A typical example looks harmless:
 
 ```
 count=0
@@ -110,7 +110,7 @@ count=$(
 
 > Here the boundary is explicit. Bash coordinates execution and captures the result. AWK owns the interpretation of the data stream. The improvement is not merely conciseness; it is correctness. AWK evaluates records deterministically, without shell expansion, and the meaning of “an ERROR line” is centralized in one place. 
 
-2. **Failures amplify with increasing complexity.** The danger of allowing Bash to interpret data becomes more pronounced as the logic expands beyond trivial conditions. What begins as a small loop often accretes validation, branching, and aggregation until the shell is silently performing domain computation. Consider the following pattern, which is common in real scripts:
+- **Failures amplify with increasing complexity.** The danger of allowing Bash to interpret data becomes more pronounced as the logic expands beyond trivial conditions. What begins as a small loop often accretes validation, branching, and aggregation until the shell is silently performing domain computation. Consider the following pattern, which is common in real scripts:
 
 ```
 errors=0
@@ -147,7 +147,7 @@ printf 'errors=%d warnings=%d\n' "$errors" "$warnings"
 
 > The difference here is architectural. Bash owns execution and output handling. AWK owns classification and counting. The program’s meaning is localized, explicit, and testable without invoking shell evaluation rules. As scripts grow, this distinction is the difference between scalable tooling and fragile automation.
 
-3. **Unstructured state management instead of responsibility-bound orchestration.** A second failure mode in shell scripting appears when scripts grow large enough to require internal structure. Without discipline, Bash code often devolves into loosely related functions sharing ambient state, with no clear ownership of data or behavior:
+- **Unstructured state management instead of responsibility-bound orchestration.** A second failure mode in shell scripting appears when scripts grow large enough to require internal structure. Without discipline, Bash code often devolves into loosely related functions sharing ambient state, with no clear ownership of data or behavior:
 
 ```
 count=0
@@ -210,7 +210,7 @@ sed 's/[[:space:]]//g' |
 cut -d',' -f1,2,3
 ```
 
-The intent here is already difficult to reconstruct, and the semantics are distributed across four tools. In BAWK, this fragmentation is avoided by treating AWK as the primary text processing engine. Matching, transformation, validation, and formatting are all expressions of meaning and belong together:
+> The intent here is already difficult to reconstruct, and the semantics are distributed across four tools. In BAWK, this fragmentation is avoided by treating AWK as the primary text processing engine. Matching, transformation, validation, and formatting are all expressions of meaning and belong together:
 
 ```
 awk -F',' '
@@ -223,7 +223,7 @@ awk -F',' '
 ' input.csv
 ```
 
-This is not about eliminating grep or sed for ideological reasons. It is about coherence. One processor owns the definition of valid input, how it is cleaned, and what output shape is produced. The script has a single point of truth for what the data means.
+> This is not about eliminating grep or sed for ideological reasons. It is about coherence. One processor owns the definition of valid input, how it is cleaned, and what output shape is produced. The script has a single point of truth for what the data means.
 
 ### Lexical Processing Boundaries
 
@@ -235,7 +235,7 @@ jq -r '.items[] | [.id, .severity] | @tsv' |
 awk -F'\t' '$2 >= 7 { print $1 }'
 ```
 
-The separation here is deliberate. The structured parser owns structure. AWK owns record-level meaning. Bash orchestrates the flow. No layer pretends to understand data it cannot reliably interpret. And Bash was chosen *because* of how close it works with command-line utilities in Unix, so use them. 
+> The separation here is deliberate. The structured parser owns structure. AWK owns record-level meaning. Bash orchestrates the flow. No layer pretends to understand data it cannot reliably interpret. And Bash was chosen *because* of how close it works with command-line utilities in Unix, so use them. 
 
 # 6 Structure, Syntax, and Semantics
 
@@ -245,7 +245,7 @@ Bash is responsible for orchestration; AWK is responsible for computation. The p
 
 Because BAWK relies on explicit structure and clear separation of responsibility, the Integrated Development Environment ("IDE") that's used is an integral part of the methodology’s enforcement surface. A properly-configured editor reduces accidental violations of the BAWK contract by making unsafe constructs visible early and by enforcing consistent structure automatically. In practice, this means the IDE is treated as a policy gate for formatting, static analysis, and readability checks. Policies that are applied continuously rather than after failures occur. For BAWK, the primary IDE of choice is [Visual Studio Code ("VS Code")](https://code.visualstudio.com/) due to its simplicity, language support, available extensions, integrated terminal, and customizability. For VS Code, BAWK requires only a small number of extensions, but they should be configured strictly. The goal is not to optimize typing speed or developer comfort, but to preserve clarity, predictability, and survivability as scripts grow and are revisited under operational pressure. Below is a consolidated list of requirements that are considered "non-negotiable" for BAWKP. 
 
-**Required Extensions**
+### Required Extensions
 
 The following VS Code extensions facilitate BAWKP development
 
@@ -255,7 +255,7 @@ The following VS Code extensions facilitate BAWKP development
 
 - **AWK Language Support (Donald Mull Jr.).** Provides syntax highlighting and basic language ergonomics for AWK. Since AWK is the primary computation engine in BAWK, its code must be readable and reviewable rather than hidden inside opaque one-liners.
 
-**Editor Configuration**
+### Editor Configuration
 
 The following VS Code settings improve BAWKP development and help enforce the methodology:
 
@@ -273,7 +273,7 @@ The following VS Code settings improve BAWKP development and help enforce the me
 
 - **Use Bash explicitly in the integrated terminal.** Ensure the terminal explicitly runs Bash so interactive testing matches script execution semantics.
 
-**Workflow Tweaks**
+### Workflow Tweaks
 
 - **Treat ShellCheck warnings as build failures unless explicitly documented.** Suppressions should be rare and justified with comments explaining why the rule does not apply.
 
@@ -285,7 +285,326 @@ The objective of this setup is simple: the editor should actively push the devel
 
 ## 6b Structure and Formatting
 
-<br>
+As previously stated, structure and formatting are part of the semantic contract of the methodology. Because Bash and AWK operate in environments rich with implicit behavior, visual structure is one of the few reliable tools available to make intent explicit and misuse visible; therefore, structure and formatting are treated as a correctness mechanism. Code that is poorly structured may still execute, but it no longer satisfies the requirements of the methodology, because it cannot be trusted under review, refactoring, or operational pressure. Crucially, these rules apply symmetrically to Bash and AWK. One of the most common failures in shell-based systems is to treat Bash as “real code” while relegating AWK to dense, unreadable one-liners. BAWK rejects this distinction. AWK is a first-class programming language within the methodology and must be held to the same standards of readability, structure, and explicitness as Bash. A BAWK program is only as readable as its least readable component. What follows is the unified structure-and-formatting rule set for both Bash and AWK. Where rules differ, the distinction is explicit; where they align, that alignment is intentional.
+
+### Script Headers and Safety Flags
+
+**Bash**
+
+Every BAWK Bash script begins by explicitly establishing its execution environment. This is non-negotiable.
+
+```
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+```
+
+> This header is not boilerplate; it defines the failure model of the program. Error propagation, unset-variable handling, pipeline correctness, and word-splitting behavior must be explicit and consistent across all scripts. Additional performance-oriented flags may be added later, but the safety baseline must always be present.
+
+**AWK**
+
+AWK programs embedded in BAWK scripts must also make their execution context explicit. This includes:
+- Explicit field separators (-F or BEGIN { FS = ... })
+- Explicit output formatting when output is consumed programmatically
+- Explicit initialization of counters and accumulators
+
+If an AWK program relies on defaults (such as whitespace field splitting), that reliance should be obvious from context and justified by simplicity, not convenience.
+
+### Indentation and Layout
+
+Shared Rules (Bash and AWK)
+
+Use 4 spaces per indentation level
+
+Never use tabs
+
+Indentation reflects logical structure, not line wrapping convenience
+
+Nested blocks must be visually obvious at a glance
+
+Indentation is especially critical in Bash and AWK because block boundaries are not always visually distinctive. Misaligned blocks are a common source of silent logic errors.
+
+Bash Example
+
+if [[ "${count}" -gt 0 ]]; then
+    handle_nonzero
+
+    if [[ "${verbose}" == true ]]; then
+        log_details
+    fi
+fi
+
+
+AWK Example
+
+{
+    if ($3 > threshold) {
+        total += $3
+
+        if ($2 == "WARN") {
+            warnings++
+        }
+    }
+}
+
+
+In both cases, indentation is doing semantic work: it makes control flow legible without requiring the reader to parse syntax mentally.
+
+### Per Line
+
+Shared Rule
+
+BAWK forbids packing multiple logical operations onto a single line unless the construct is inherently atomic.
+
+Disallowed
+
+cmd1; cmd2; cmd3
+
+/ERROR/ { errors++; print $0 }
+
+
+Allowed
+
+cmd1
+cmd2
+cmd3
+
+/ERROR/ {
+    errors++
+    print $0
+}
+
+
+This rule applies especially strongly to AWK, where one-liners are culturally common but structurally opaque. If logic exists, it deserves vertical space.
+
+### Functions, Blocks, and Program Units
+
+Bash
+
+Use name() syntax (never the function keyword)
+
+Opening brace on the same line
+
+Blank line before and after each function
+
+Functions represent responsibility-bearing units, not arbitrary code grouping
+
+process_input() {
+    validate_args "$@"
+    run_pipeline
+}
+
+
+AWK
+
+AWK does not use functions as heavily, but when they are present:
+
+Functions must be declared at top-level
+
+Function names must describe intent, not mechanics
+
+Functions should encapsulate reusable computation, not control flow
+
+function normalize_field(value) {
+    gsub(/[[:space:]]+/, "", value)
+    return value
+}
+
+
+Even when functions are not used, AWK blocks (BEGIN, pattern blocks, END) must be clearly separated and structured.
+
+### Variables and Scope
+
+Bash
+
+No spaces around =
+
+Uppercase for globals and constants
+
+Lowercase for locals
+
+local is mandatory inside functions
+
+Global mutation is treated as a design smell
+
+SCRIPT_NAME=$(basename "$0")
+
+process_file() {
+    local file=$1
+    local count=0
+}
+
+
+AWK
+
+All variables are global by default; this makes naming discipline critical
+
+Use descriptive variable names, not single letters, unless the scope is trivial
+
+Initialize accumulators explicitly
+
+Avoid reusing variables for unrelated purposes
+
+BEGIN {
+    error_count = 0
+    warning_count = 0
+}
+
+
+Because AWK lacks lexical scoping in the Bash sense, clarity and initialization are the primary defenses against accidental coupling.
+
+### Conditionals, Loops, and Case Analysis
+
+Bash
+
+Always use [[ ... ]], never [ ... ]
+
+One logical test per conditional unless grouping is explicit
+
+Loops iterate over resources, not data streams, unless unavoidable
+
+if [[ -f "${config}" ]]; then
+    load_config "${config}"
+fi
+
+
+AWK
+
+Prefer explicit if blocks over pattern-only actions when logic grows
+
+Nested conditionals must be indented and spaced clearly
+
+Avoid embedding complex logic directly into patterns
+
+{
+    if ($2 == "ERROR") {
+        error_count++
+    } else if ($2 == "WARN") {
+        warning_count++
+    }
+}
+
+
+In both languages, control flow must be readable without mental expansion of operators or shortcuts.
+
+## Pipelines and Command Substitution
+
+Bash
+
+Prefer $() over backticks
+
+Multi-line substitutions must be formatted as blocks
+
+Pipelines must be broken across lines when non-trivial
+
+result=$(
+    awk '{ sum += $1 } END { print sum }' "${file}"
+)
+
+some_tool |
+    awk '{ print $1 }' |
+    sort -u
+
+
+AWK
+
+AWK programs embedded in pipelines must remain readable in isolation. If an AWK script grows beyond a few lines, it should be formatted as a block, not compressed inline.
+
+### Comments and Documentation
+
+Shared Rules
+
+Full-line comments start with #
+
+Comments explain why, not what
+
+Obvious code does not need narration
+
+AWK programs must be commented when domain meaning is encoded
+
+/^[[:space:]]*#/ {
+    next
+}
+
+
+In BAWK, comments are part of the interface contract. They describe assumptions, invariants, and data shape expectations.
+
+### Blank Lines as Structure
+
+Blank lines are structural markers, not decoration.
+
+Use them to separate:
+
+Setup from execution
+
+Function groups
+
+Logical phases
+
+AWK pattern blocks
+
+Initialization from computation
+
+Avoid blank lines inside tight logic unless they improve clarity.
+
+### Line Length and Horizontal Density
+
+Soft limit: 100–120 characters
+
+Break early when readability improves
+
+Vertical space is cheaper than cognitive load
+
+This rule is especially important for AWK, where dense expressions can become unreadable long before they become syntactically invalid.
+
+### File Structure Consistency
+
+Bash
+
+BAWK scripts follow a predictable top-to-bottom structure:
+
+Shebang and safety flags
+
+Constants and globals
+
+Utility functions
+
+Domain functions / “objects”
+
+Main logic
+
+Explicit entrypoint
+
+main() {
+    parse_args "$@"
+    run
+}
+
+main "$@"
+
+
+AWK
+
+AWK programs should follow a similarly predictable order:
+
+BEGIN block (initialization)
+
+Pattern/action blocks (core logic)
+
+END block (finalization/output)
+
+Function definitions (if present)
+
+This consistency allows readers to orient themselves immediately.
+
+### The Structural Rule, Restated
+
+This is where to add a point in saying shellcheck is a big helper. If shellcheck says it's wrong, it's wrong unless explicitly stated why. 
+
+If the structure of a Bash or AWK program requires careful reading to understand its control flow or data semantics, it is already unsafe. In BAWK, formatting and structure are not style choices; they are the mechanism by which meaning is made visible and mistakes are prevented. A script that violates these rules may still run, but it no longer qualifies as a BAWK program, because it has abandoned the very constraints that make the methodology survivable.
+
+In the next section, these structural rules are paired with efficiency constraints, showing how disciplined formatting and disciplined performance considerations reinforce one another rather than compete.
 
 ## 6c Efficiency as a Design Constraint
 
