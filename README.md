@@ -295,7 +295,6 @@ Every BAWK Bash script begins by explicitly establishing its execution environme
 
 ```
 #!/usr/bin/env bash
-
 set -euo pipefail
 IFS=$'\n\t'
 ```
@@ -455,12 +454,32 @@ Because AWK lacks lexical scoping in the Bash sense, clarity and initialization 
 
 - Always use ```[[ ... ]]```, never ```[ ... ]```
 - One logical test per conditional unless grouping is explicit
-- Loops iterate over resources, not data streams, unless unavoidable
+- Loops should express control flow over program resources; data interpretation belongs in AWK
+- ```for``` loops over words; ```while``` loops over streams
 
 ```
 if [[ -f "${config}" ]]; then
     load_config "${config}"
 fi
+```
+
+**Case Statements**
+
+- Each pattern on its own line.
+- Indent patterns and actions.
+
+```
+case "${action}" in
+    start)
+        start_service
+        ;;
+    stop)
+        stop_service
+        ;;
+    *)
+        die "Unknown action: ${action}"
+        ;;
+esac
 ```
 
 **AWK**
@@ -481,7 +500,9 @@ fi
 
 In both languages, control flow must be readable without mental expansion of operators or shortcuts.
 
-## Pipelines and Command Substitution
+### Pipelines and Command Substitution
+
+This rule exists to expose data flow and failure points visually, not to optimize execution.
 
 **Bash**
 
@@ -540,6 +561,19 @@ This rule is especially important for AWK, where dense expressions can become un
 - Break early when readability improves
 - Vertical space is cheaper than cognitive load
 
+### Error Handling
+
+This rule defines structural ownership of failure, not error classification or recovery strategy
+- Always centralize fatal errors via a function
+- Never sprinkle exit 1 randomly
+
+```
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+```
+
 ### File Structure Consistency
 
 **Bash**
@@ -592,15 +626,17 @@ This consistency allows readers to orient themselves immediately.
 
 ### The Structural Rule, Restated
 
-This is where to add a point in saying shellcheck is a big helper. If shellcheck says it's wrong, it's wrong unless explicitly stated why. 
+If the structure of a Bash or AWK program requires careful reading to understand its control flow or data semantics, it is already unsafe and should be rewritten before it is trusted. In BAWK, formatting and structure are not aesthetic preferences; they are part of the program’s safety surface—the primary mechanism for making intent obvious and making dangerous ambiguity visible before execution. This is also where tooling becomes enforceable policy rather than optional guidance. For Bash specifically, ShellCheck functions as a policy enforcer: if ShellCheck flags a construct as unsafe or incorrect, then within the BAWK contract it is treated as unsafe or incorrect. The only acceptable exception is an explicit, documented justification explaining why the warning does not apply in that specific context. Anything else is rationalization, and rationalization is how shell scripts become unreviewable and untrustworthy over time.
 
-If the structure of a Bash or AWK program requires careful reading to understand its control flow or data semantics, it is already unsafe. In BAWK, formatting and structure are not style choices; they are the mechanism by which meaning is made visible and mistakes are prevented. A script that violates these rules may still run, but it no longer qualifies as a BAWK program, because it has abandoned the very constraints that make the methodology survivable. In the next section, these structural rules are paired with efficiency constraints, showing how disciplined formatting and disciplined performance considerations reinforce one another rather than compete.
+A script may still “work” while violating these rules, but it no longer qualifies as a BAWK program, because it has abandoned the constraints that make the methodology survivable under refactoring and operational stress. In the next section, these structural rules are paired with efficiency constraints, demonstrating that disciplined formatting and disciplined performance are not competing concerns—they reinforce the same goal: reducing ambiguity, reducing failure modes, and keeping shell programs predictable as they scale.
 
 ## 6c Efficiency as a Design Constraint
 
 <br>
 
 ## 6d Antipatterns and Hard Rules
+
+- Always quote variable expansions unless you explicitly want splitting or globbing
 
 <br>
 
