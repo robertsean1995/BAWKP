@@ -21,7 +21,7 @@
 
 <hr>
 
-# Table of Contents
+## Table of Contents
 - [1 Introduction and Methodology](#1-introduction-and-methodology)
   - [1a Mental Model](#1a-mental-model)
 - [2 General-Purpose Programming with BAWK](#2-general-purpose-programming-with-bawk)
@@ -31,13 +31,16 @@
 - [6 Structure, Syntax, and Semantics](#6-structure-syntax-and-semantics)
   - [6a Integrated Development Environment](#6a-integrated-development-environment)
   - [6b Structure and Formatting](#6b-structure-and-formatting)
-    - [The Structure Rule, Restated](#the-structure-rule-restated)
   - [6c Efficiency as a Design Constraint](#6c-efficiency-as-a-design-constraint)
-    - [The Efficiency Rule, Restated](#the-efficiency-rule-restated)
   - [6d Antipatterns and Hard Rules](#6d-antipatterns-and-hard-rules)
-    - [The Antipatterns List, Restated](#the-antipatterns-list-restated)
-    - [The Hard Rule, Restated](#the-hard-rule-restated)
 - [7 Conclusion](#7-conclusion)
+
+## Quick References
+
+- [The Structure Rule, Restated](#the-structure-rule-restated)
+- [The Efficiency Rule, Restated](#the-efficiency-rule-restated)
+- [The Antipatterns List, Restated](#the-antipatterns-list-restated)
+- [The Hard Rule, Restated](#the-hard-rule-restated)
 
 <hr>
 
