@@ -31,7 +31,7 @@
 - [6 Structure, Syntax, and Semantics](#6-structure-syntax-and-semantics)
   - [6a Integrated Development Environment](#6a-integrated-development-environment)
   - [6b Structure and Formatting](#6b-structure-and-formatting)
-  - [6c Efficiency as a Design Constraint](#6c-efficiency-as-a-design-constraint)
+  - [6c Efficiency Constraints](#6c-efficiency-constraints)
   - [6d Antipatterns and Hard Rules](#6d-antipatterns-and-hard-rules)
 - [7 Conclusion](#7-conclusion)
 
@@ -639,7 +639,7 @@ This consistency allows readers to orient themselves immediately.
 
 If the structure of a Bash or AWK program requires careful reading to understand its control flow or data semantics, it is already unsafe and should be rewritten before it is trusted. In BAWK, formatting and structure are not aesthetic preferences; they are part of the program’s safety surface—the primary mechanism for making intent obvious and making dangerous ambiguity visible before execution. This is also where tooling becomes enforceable policy rather than optional guidance. For Bash specifically, ShellCheck functions as a policy enforcer: if ShellCheck flags a construct as unsafe or incorrect, then within the BAWK contract it is treated as unsafe or incorrect. The only acceptable exception is an explicit, documented justification explaining why the warning does not apply in that specific context. Anything else is rationalization, and rationalization is how shell scripts become unreviewable and untrustworthy over time. A script may still “work” while violating these rules, but it no longer qualifies as a BAWK program, because it has abandoned the constraints that make the methodology survivable under refactoring and operational stress. In the next section, these structural rules are paired with efficiency constraints, demonstrating that disciplined formatting and disciplined performance are not competing concerns—they reinforce the same goal: reducing ambiguity, reducing failure modes, and keeping shell programs predictable as they scale.
 
-## 6c Efficiency as a Design Constraint
+## 6c Efficiency Constraints
 
 In BAWK, efficiency is not an optimization concern; it is a correctness constraint. Inefficient shell programs are almost always inefficient because responsibilities have leaked across boundaries: Bash is interpreting data, AWK is being fragmented into multiple passes, or external tools are being invoked redundantly. These failures do not merely waste time—they introduce ambiguity, amplify failure modes, and reduce trust in the program’s behavior under operational pressure. The rules in this section are therefore mandatory. They exist to preserve the execution model assumed by BAWK: Bash orchestrates sparingly, AWK computes deterministically in-process, and external tools are invoked only when they provide unique capability. Scripts that violate these rules may still run, but they no longer conform to the methodology.
 
