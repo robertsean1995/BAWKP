@@ -31,8 +31,12 @@
 - [6 Structure, Syntax, and Semantics](#6-structure-syntax-and-semantics)
   - [6a Integrated Development Environment](#6a-integrated-development-environment)
   - [6b Structure and Formatting](#6b-structure-and-formatting)
+    - [The Structure Rule, Restated](#the-structure-rule-restated)
   - [6c Efficiency as a Design Constraint](#6c-efficiency-as-a-design-constraint)
+    - [The Efficiency Rule, Restated](#the-efficiency-rule-restated)
   - [6d Antipatterns and Hard Rules](#6d-antipatterns-and-hard-rules)
+    - [The Antipatterns List, Restated](#the-antipatterns-list-restated)
+    - [The Hard Rule, Restated](#the-hard-rule-restated)
 - [7 Conclusion](#7-conclusion)
 
 <hr>
@@ -241,6 +245,8 @@ awk -F'\t' '$2 >= 7 { print $1 }'
 
 Bash is responsible for orchestration; AWK is responsible for computation. The preceding sections explained this philosophy and how it applies to this methodology, including a technical representation of the separation of duties between Bash and AWK. This section will explain and specify how that philosophy is enforced and applied in practice. What follows is not guidance, preference, or stylistic advice, but a rulebook derived directly from the BAWK contract: Bash is responsible for orchestration, state, and control flow; AWK is responsible for interpreting, transforming, and aggregating line-oriented data; and specialist tools are responsible for structured parsing and domain-specific work. These roles are exclusive, and violations are treated as design errors rather than stylistic disagreements. The rules in this section exist to preserve readability, correctness, and survivability as scripts grow, change, and are executed under operational pressure. A script that adheres to these rules qualifies as a BAWK program; a script that does not may still function, but it no longer conforms to the methodology.
 
+THIS WHOLE SECTION MIGHT NEED TO BE REFORMATTED, INCLUDING HEADER STYLES VS BOLDING OF HEADERS
+
 ## 6a Integrated Development Environment
 
 Because BAWK relies on explicit structure and clear separation of responsibility, the Integrated Development Environment ("IDE") that's used is an integral part of the methodology’s enforcement surface. A properly-configured editor reduces accidental violations of the BAWK contract by making unsafe constructs visible early and by enforcing consistent structure automatically. In practice, this means the IDE is treated as a policy gate for formatting, static analysis, and readability checks. Policies that are applied continuously rather than after failures occur. For BAWK, the primary IDE of choice is [Visual Studio Code ("VS Code")](https://code.visualstudio.com/) due to its simplicity, language support, available extensions, integrated terminal, and customizability. For VS Code, BAWK requires only a small number of extensions, but they should be configured strictly. The goal is not to optimize typing speed or developer comfort, but to preserve clarity, predictability, and survivability as scripts grow and are revisited under operational pressure. Below is a consolidated list of requirements that are considered "non-negotiable" for BAWKP. 
@@ -286,6 +292,8 @@ The objective of this setup is simple: the editor should actively push the devel
 ## 6b Structure and Formatting
 
 As previously stated, structure and formatting are part of the semantic contract of the methodology. Because Bash and AWK operate in environments rich with implicit behavior, visual structure is one of the few reliable tools available to make intent explicit and misuse visible; therefore, structure and formatting are treated as a correctness mechanism. Code that is poorly structured may still execute, but it no longer satisfies the requirements of the methodology, because it cannot be trusted under review, refactoring, or operational pressure. Crucially, these rules apply symmetrically to Bash and AWK. One of the most common failures in shell-based systems is to treat Bash as “real code” while relegating AWK to dense, unreadable one-liners. BAWK rejects this distinction. AWK is a first-class programming language within the methodology and must be held to the same standards of readability, structure, and explicitness as Bash. A BAWK program is only as readable as its least readable component. What follows is the unified structure-and-formatting rule set for both Bash and AWK. Where rules differ, the distinction is explicit; where they align, that alignment is intentional.
+
+CHECK WHETHER THE ORDERING OF THIS SECTIONS WORKS BEST. 
 
 ### Script Headers and Safety Flags
 
@@ -624,22 +632,465 @@ AWK programs should follow a similarly predictable order:
 
 This consistency allows readers to orient themselves immediately.
 
-### The Structural Rule, Restated
+### The Structure Rule, Restated
 
-If the structure of a Bash or AWK program requires careful reading to understand its control flow or data semantics, it is already unsafe and should be rewritten before it is trusted. In BAWK, formatting and structure are not aesthetic preferences; they are part of the program’s safety surface—the primary mechanism for making intent obvious and making dangerous ambiguity visible before execution. This is also where tooling becomes enforceable policy rather than optional guidance. For Bash specifically, ShellCheck functions as a policy enforcer: if ShellCheck flags a construct as unsafe or incorrect, then within the BAWK contract it is treated as unsafe or incorrect. The only acceptable exception is an explicit, documented justification explaining why the warning does not apply in that specific context. Anything else is rationalization, and rationalization is how shell scripts become unreviewable and untrustworthy over time.
-
-A script may still “work” while violating these rules, but it no longer qualifies as a BAWK program, because it has abandoned the constraints that make the methodology survivable under refactoring and operational stress. In the next section, these structural rules are paired with efficiency constraints, demonstrating that disciplined formatting and disciplined performance are not competing concerns—they reinforce the same goal: reducing ambiguity, reducing failure modes, and keeping shell programs predictable as they scale.
+If the structure of a Bash or AWK program requires careful reading to understand its control flow or data semantics, it is already unsafe and should be rewritten before it is trusted. In BAWK, formatting and structure are not aesthetic preferences; they are part of the program’s safety surface—the primary mechanism for making intent obvious and making dangerous ambiguity visible before execution. This is also where tooling becomes enforceable policy rather than optional guidance. For Bash specifically, ShellCheck functions as a policy enforcer: if ShellCheck flags a construct as unsafe or incorrect, then within the BAWK contract it is treated as unsafe or incorrect. The only acceptable exception is an explicit, documented justification explaining why the warning does not apply in that specific context. Anything else is rationalization, and rationalization is how shell scripts become unreviewable and untrustworthy over time. A script may still “work” while violating these rules, but it no longer qualifies as a BAWK program, because it has abandoned the constraints that make the methodology survivable under refactoring and operational stress. In the next section, these structural rules are paired with efficiency constraints, demonstrating that disciplined formatting and disciplined performance are not competing concerns—they reinforce the same goal: reducing ambiguity, reducing failure modes, and keeping shell programs predictable as they scale.
 
 ## 6c Efficiency as a Design Constraint
 
-<br>
+In BAWK, efficiency is not an optimization concern; it is a correctness constraint. Inefficient shell programs are almost always inefficient because responsibilities have leaked across boundaries: Bash is interpreting data, AWK is being fragmented into multiple passes, or external tools are being invoked redundantly. These failures do not merely waste time—they introduce ambiguity, amplify failure modes, and reduce trust in the program’s behavior under operational pressure. The rules in this section are therefore mandatory. They exist to preserve the execution model assumed by BAWK: Bash orchestrates sparingly, AWK computes deterministically in-process, and external tools are invoked only when they provide unique capability. Scripts that violate these rules may still run, but they no longer conform to the methodology.
+
+CHECK WHETHER THE ORDERING OF THIS SECTIONS WORKS BEST. 
+
+### Bash Efficiency
+
+**Record-Level Data Computation**
+
+Any Bash code that iterates line-by-line over file contents, parses fields, applies pattern logic, or aggregates values is violating the BAWK contract. These responsibilities belong exclusively to AWK.
+
+**Prohibited:**
+
+```
+while IFS= read -r line; do
+    [[ $line == *ERROR* ]] && ((count++))
+done < file
+```
+
+**Required:**
+
+```
+count=$(awk '/ERROR/ { c++ } END { print c }' file)
+```
+
+**Orchestration**
+
+Loops over unbounded data streams are prohibited. Loops in Bash are permitted only when iterating over:
+- files
+- hosts
+- commands
+- modes of operation
+- explicitly bounded program resources
+
+**Process Management**
+
+Each external command invocation must be justified. Repeated invocation of external tools inside loops is a design failure unless the tool invocation itself is the unit of orchestration.
+- Prefer a single invocation operating on multiple inputs
+- Batch filesystem operations whenever possible
+
+**Prohibited:**
+
+```
+for f in *.log; do
+    rm "$f"
+done
+```
+
+**Required:**
+
+```
+rm -- *.log
+```
+
+**Builtins, Not External Commands**
+
+Bash builtins are always preferred over external commands. External commands may only be used when no builtin provides equivalent behavior. For example:
+
+<div align="center">
+
+| Prohibited        | Required     |
+|-------------------|--------------|
+| `test`, `[ ]`     | `[[ ... ]]`  |
+| `expr`            | `$(( ... ))` |
+| `echo`            | `printf`     |
+| `` `cat file` ``  | `cmd`        |
+
+</div>
+
+**Command Substitution in Hot Paths**
+
+What are hot paths?
+
+Repeated use of ```$()``` inside loops is prohibited. Values must be computed once, stored, and reused.
+
+**Arrays, Not String Munging**
+
+String-based iteration is fragile and slow.
+
+**Prohibited:**
+
+```
+files=$(ls *.txt)
+for f in $files; do ...
+```
+
+**Required:**
+
+```
+files=( *.txt )
+for f in "${files[@]}"; do ...
+```
+
+**Disable Interactive Shell Features**
+
+ARE THESE DONE WITHIN THE SCRIPT OR THE TERMINAL? SHOULDN'T THIS THEN BE ADDED TO THE MAIN SCRIPT FLAGS?
+
+Reliance on interactive-only features is a correctness violation. Unless explicitly required and documented, the following MUST be disabled:
+- set +H
+- set +o history
+- set +m
+- shopt -u extglob
+- export LC_ALL=C
+
+### AWK Efficiency Rules
+
+**Data Computation**
+
+AWK must own all data computation in a single pass whenever possible. If multiple AWK invocations process the same data stream to perform related logic, the design must be reconsidered. Related filtering, classification, normalization, aggregation, and formatting SHOULD be consolidated into a single AWK program.
+
+**INSERT NAME HERE**
+
+AWK programs MUST be single-responsibility processors. Each AWK program must have a clear computational role and a defined input/output contract. AWK scripts that mix unrelated concerns or serve as ad-hoc glue logic are prohibited.
+
+**INSERT NAME HERE**
+
+AWK MUST explicitly initialize all accumulators and state. Implicit initialization is forbidden when state is meaningful.
+
+**Prohibited:**
+
+```
+{ total += $3 }
+```
+
+**Required:**
+
+```
+BEGIN { total = 0 }
+{ total += $3 }
+```
+
+**Parsing Structured Data Formats**
+
+JSON, YAML, XML, or other structured formats MUST be parsed by appropriate specialist tools (jq, yq, etc.). AWK may only operate on normalized projections of such data.
+
+**Prohibited:**
+
+```
+awk '/"severity":/ { ... }' data.json
+```
+
+**Required:**
+
+```
+jq -r '.items[] | [.id, .severity] | @tsv' data.json |
+awk -F'\t' '$2 >= 7 { print $1 }'
+```
+
+**Regular Expressions**
+
+AWK MUST avoid unnecessary regular expression evaluation. Complex pattern logic must remain readable and localized. Regexes should be:
+- Anchored when possible
+- Reused logically
+- Avoided when field comparison suffices
+
+**INSERT NAME HERE**
+
+AWK MUST NOT be fragmented into dense one-liners when logic exists. Readable multi-line AWK programs are mandatory when computation is non-trivial. Compression for brevity is prohibited when it harms clarity.
+
+### Cross-Cutting Efficiency
+
+These rules apply to all BAWK programs regardless of language boundary.
+
+**INSERT NAME HERE**
+
+Prefer fewer processes over clever pipelines. Each pipeline stage must provide unique value. Chaining tools that overlap in responsibility is prohibited.
+
+**INSERT NAME HERE**
+
+Prefer fewer passes over clever reuse. Data should flow through the system once unless additional passes materially simplify logic and are explicitly justified.
+
+**INSERT NAME HERE**
+
+Efficiency violations MUST be treated as architectural drift. Micro-optimizations are not an acceptable substitute for correcting responsibility leaks. If a script becomes slow, the first assumption must be that:
+- Bash has absorbed computation
+- AWK has been fragmented
+- tools are being invoked redundantly
+
+**Violation Management**
+
+Violations MUST be documented or corrected. Undocumented violations are considered defects. Any intentional deviation from these rules must include:
+- an explanation of why the rule does not apply
+- justification that correctness and survivability are preserved
+
+### The Efficiency Rule, Restated
+
+Bash is obviously not known for its speed; however, efficiency is not about speed for its own sake. It is about aligning program structure with the execution model of the tools involved. Bash is efficient when it orchestrates sparsely and predictably. AWK is efficient when it computes densely and deterministically in a single process. External tools are efficient when invoked once to do the work they are uniquely suited for. When these constraints are respected, performance improvements often emerge naturally as a consequence of clear design. When they are violated, inefficiency becomes an early warning signal that the program’s architecture is no longer trustworthy. In BAWK, efficiency is therefore not optional—it is a structural requirement that reinforces the methodology’s core promise: shell programs that remain predictable, reviewable, and survivable as they scale.
 
 ## 6d Antipatterns and Hard Rules
 
-- Always quote variable expansions unless you explicitly want splitting or globbing
+This section defines behaviors that are categorically forbidden in BAWK programs. These rules exist because the patterns they prohibit are responsible for the majority of real-world shell failures: silent misbehavior, data corruption, privilege escalation, and irreversible damage. In Bash, especially, many constructs that appear harmless or idiomatic are in fact traps whose failure modes are invisible until they are catastrophic. BAWK treats these patterns as design defects, not learning opportunities. These rules are intentionally strict. They eliminate ambiguity, prevent entire classes of bugs, and ensure that scripts remain reviewable and trustworthy under operational stress. Any script that violates these rules no longer qualifies as a BAWK program, regardless of whether it “works” in testing.
 
-<br>
+CHECK WHETHER THE ORDERING OF THIS SECTIONS WORKS BEST. 
+
+### Quoting Rule
+
+All variable expansions MUST be quoted unless splitting or globbing is explicitly and intentionally required. This is the single most important rule in Bash, and it overrides convenience, habit, and stylistic preference. Unquoted expansions trigger:
+- word splitting
+- pathname expansion (globbing)
+- locale-dependent behavior
+
+These effects are implicit, often invisible, and frequently destructive. Any unquoted expansion must be defensible as intentional behavior. If intent is unclear, the code is incorrect.
+
+**Prohibited:**
+
+```
+rm $file
+echo $value
+for f in $files; do ...
+```
+
+**Required:**
+
+```
+rm -- "${file}"
+printf '%s\n' "${value}"
+for f in "${files[@]}"; do ...
+```
+
+### Expansion Rule
+
+Brace form ("${var}") MUST be used for variable expansion. The brace form makes expansion boundaries explicit and prevents accidental concatenation or misreading.
+
+**Prohibited:**
+
+```
+echo "$file_name"
+```
+
+**Required:**
+
+```
+echo "${file_name}"
+```
+
+### Never Use ```eval```
+
+```eval``` MUST NOT be used. ```eval``` introduces an additional evaluation pass that destroys any meaningful boundary between data and code. It is incompatible with predictability, safety, and reviewability. If dynamic behavior is required, redesign the interface or delegate to a proper language.
+
+**Prohibited:**
+
+```
+eval "$cmd"
+```
+
+### Never Use Backticks
+
+Backticks are legacy syntax with confusing nesting and escaping rules.
+
+**Prohibited:**
+
+```
+result=`cmd`
+```
+
+**Required:**
+
+```
+result=$(cmd)
+```
+
+### Never Use ```[ ... ]``` 
+
+The legacy test command is fragile, poorly scoped, and easy to misuse.
+
+**Prohibited:**
+
+```
+if [ $x = $y ]; then ...
+```
+
+**Required:**
+
+```
+if [[ "${x}" == "${y}" ]]; then ...
+```
+
+### Never Parse ```ls``` Output 
+
+```ls``` is a presentation tool, not a data interface.
+
+**Prohibited:**
+
+```
+ls *.txt | while read f; do ...
+```
+
+**Required:**
+
+```
+for f in *.txt; do ...
+```
+
+or
+
+```
+find . -name '*.txt' -print0 | while IFS= read -r -d '' f; do ...
+```
+
+### Never Use ```ls | while read``` Pipelines
+
+This combines two separate antipatterns: parsing presentation output and subshell state loss.
+
+### Modifying Global Variables in Functions
+
+Functions that mutate global state without explicit ownership boundaries are prohibited.
+
+**Prohibited:**
+
+```
+count=0
+increment() {
+    count=$((count + 1))
+}
+```
+
+**Required:**
+
+- Explicit state carriers
+- Return values
+- Responsibility-bound objects
+
+### Implicit Dependencies on Ambient State
+
+Functions must declare their inputs explicitly. Reliance on variables defined “somewhere above” is a design failure.
+
+### Bash Cannot Interpret Data Streams
+
+Any loop that reads input line-by-line in Bash is suspect and usually forbidden. Exceptions must be explicitly justified and documented.
+
+**Prohibited:**
+
+```
+while read line; do ...
+```
+
+Required:
+
+```
+awk '{ ... }'
+```
+
+### Single-Line Pipelines 
+
+Long, dense pipelines that cannot be reasoned about at a glance are prohibited.
+
+**Prohibited:**
+
+```
+cmd1 | cmd2 | cmd3 | cmd4 | cmd5
+```
+
+**Required:**
+
+```
+cmd1 |
+    cmd2 |
+    cmd3
+```
+
+### AWK Cannot Parse Structured Formats
+
+Attempting to parse JSON, YAML, XML, or other structured formats with regex is a correctness failure. 
+
+### AWK one-liners that encode non-trivial logic are prohibited.
+
+If the AWK code requires explanation, it must be written as a formatted block.
+
+**Prohibited:**
+
+```
+awk '/ERROR/ { e++ } /WARN/ { w++ } END { print e, w }'
+```
+
+**Required:**
+
+```
+awk '
+    /ERROR/ {
+        errors++
+    }
+
+    /WARN/ {
+        warnings++
+    }
+
+    END {
+        print errors, warnings
+    }
+'
+```
+
+### Implicit Field Usage in AWK
+
+Use explicit field separators and document field meaning when semantics matter.
+
+### Error Handling Violations in AWK
+
+Random ```exit``` calls are forbidden. Fatal errors must be centralized through a dedicated error-handling function. Ignoring failure is prohibited. Every command that can fail must be allowed to fail loudly or be explicitly handled. Silent failure is a defect.
+
+**Prohibited:**
+
+```
+exit 1
+```
+
+**Required:**
+
+```
+die "Meaningful error message"
+```
+
+### Why These Rules Exist
+
+These rules do not exist to enforce style or gatekeep expertise. They exist because each prohibited pattern:
+- hides intent
+- multiplies failure modes
+- relies on implicit shell behavior
+- becomes unreviewable under stress
+
+BAWK assumes that scripts will be read and modified by tired humans, possibly under time pressure, possibly with elevated privileges. Anything that requires careful mental simulation to establish safety has already failed that assumption.
+
+### The Antipatterns List, Restated
+
+The following list is absolute. Violations are defects.
+- No unquoted variable expansions
+- No ```eval```
+- No backticks
+- No ```[ ... ]```
+- No parsing ```ls``` output
+- No ```ls | while read``` pipelines
+- No global state mutation inside functions
+- No Bash loops over data streams
+- No AWK parsing of structured formats
+- No dense, unreadable one-liners
+- No silent failure
+- No undocumented deviations
+
+### The Hard Rule, Restated
+
+If a construct requires justification to be safe, it is not safe by default. If a script requires explanation to be trusted, it should be rewritten.
+
+BAWK exists to remove ambiguity, not to manage it. These antipatterns are forbidden because they turn shell scripts into latent hazards. Eliminating them is the price of predictability—and predictability is the foundation on which the rest of the methodology stands.
 
 # 7 Conclusion
 
-At the end of the day, you are just learning Bash and AWK. This methodology was created as a unique way to combine both into a unified approach for offensive security engineers, penetration testers, ethical hackers, and people looking at using existing tools in slightly different ways. 
+At the end of the day, you are just learning Bash and AWK. BAWK is not a claim that Bash and AWK are secretly something they are not. It does not assert that shell scripting should replace full application languages, nor does it attempt to turn Unix tooling into a general software platform. At the end of the day, BAWK is simply the disciplined use of Bash and AWK—two mature, well-understood tools—combined into a unified approach. The methodology exists to make that combination explicit, enforceable, and survivable in environments where shell scripts are expected to do real work under real pressure. Nothing more is promised, and nothing less is acceptable.
+
+The core value of BAWK is not novelty, but restraint. By clearly defining what Bash is allowed to do and what AWK is responsible for, the methodology reduces ambiguity rather than adding abstraction. Bash remains what it has always been: a control language that excels at orchestration, environment management, and interaction with the operating system. AWK remains what it has always been: a powerful, deterministic engine for interpreting and transforming line-oriented data. What BAWK adds is a contract between them. That contract prevents responsibility drift, curbs the accumulation of fragile pipelines, and turns common shell practices into a coherent programming model instead of a collection of habits.
+
+This approach was designed explicitly for offensive security engineers, penetration testers, ethical hackers, and practitioners who work close to systems rather than inside application frameworks. In those domains, scripts are often run in unfamiliar environments, with limited tooling, inconsistent data, and elevated privileges. Mistakes are not abstract; they change systems, alter networks, and sometimes cause irreversible damage. BAWK addresses that reality by prioritizing predictability, readability, and survivability over cleverness or expressiveness. The methodology assumes that scripts will be read by tired humans, debugged under time pressure, and modified incrementally as conditions change. It therefore treats structure, formatting, efficiency, and explicit boundaries as operational safeguards rather than stylistic preferences.
+
+The “BAWK first, Python second” principle reflects this same pragmatism. Python remains an essential tool, and BAWK does not attempt to compete with it in domains where Python is the right answer. Instead, the methodology exists to delay escalation until it is genuinely necessary. Many problems commonly handed to Python—text parsing, field extraction, aggregation, normalization—are already solved cleanly by AWK when paired with Bash orchestration. When a problem outgrows that pairing, the transition to another language should be intentional, minimal, and explicit. That transition is not a failure of BAWK; it is confirmation that its boundaries are being respected.
+
+It is also important to emphasize what BAWK is not. It is not a framework to adopt wholesale, a toolchain to install, or a language to learn from scratch. There is no runtime, no compiler, and no dependency graph. If you understand Bash and AWK, you already understand BAWK. The methodology merely reframes how those tools are combined and enforces constraints that many experienced practitioners arrive at informally after years of hard-earned mistakes. BAWK exists to compress that learning curve by making those constraints explicit and repeatable.
+
+Ultimately, BAWK is a way of thinking about shell scripting as programming, not as recorded terminal sessions. It encourages practitioners to treat scripts as artifacts that deserve design, structure, and boundaries, especially when those scripts are used for security work. By unifying Bash and AWK into a disciplined, responsibility-driven approach, BAWK enables practitioners to use existing tools in slightly different—and more reliable—ways. The result is not more power, but more control. And in environments where shell scripts can change systems and shape outcomes, control is the property that matters most.
