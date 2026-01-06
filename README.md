@@ -8,7 +8,7 @@
 
 <hr>
 
-**BAWK Programming ("b/awk/p" or "BAWKP") is an unconventional programming methodology that's based on compositional language-oriented programming. It treats Bash as a general-purpose programming language with object-oriented elements for orchestration, while composing AWK as a dedicated processing language responsible for pattern matching, transformation, field processing, aggregation, and computation. This idea was originally conceived trying to improve my own offensive security methodologies. Learning Bash, AWK, and Python is only natural for penetration testers, and I wanted a way to combine them into a unified approach.**
+**BAWK Programming ("b/awk/p" or "BAWKP") is an unconventional programming methodology based on compositional language-oriented programming. It treats Bash as a general-purpose programming language with object-oriented elements for orchestration, while composing AWK as a domain-specific programming language for data processing and computation. This idea was originally conceived while trying to improve my own offensive security methodologies. Learning Bash, AWK, and Python is only natural for offensive security engineers, and I wanted a way to combine them into a unified approach.**
 
 **The name "BAWK" is derived from a combination of Bash and AWK. The logo is made to resemble a regular expression in the same style as GREP ("g/re/p"), and the chickens are a lighthearted reference to the onomatopoeia of the same name.**
 - Formalizes Bash and AWK as a unified programming environment.
