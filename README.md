@@ -21,6 +21,8 @@
 
 <hr>
 
+figure out where to add a section discussing the increase in efficiency by dumping computational responsbilities to awk, as opposed to just base bash
+
 ## Table of Contents
 - [1 Introduction and Methodology](#1-introduction-and-methodology)
   - [1a Mental Model](#1a-mental-model)
