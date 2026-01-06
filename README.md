@@ -12,7 +12,7 @@
 
 **The name "BAWK" is derived from a combination of Bash and AWK. The logo is made to resemble a regular expression in the same style as GREP ("g/re/p"), and the chickens are a lighthearted reference to the onomatopoeia of the same name.**
 - Formalizes Bash and AWK as a unified programming environment.
-- Enforces strict separation of duties between control flow and computation.
+- Enforces strict separation of duties between orchestration and computation.
 - Replaces fragile shell pipelines with structured, responsibility-driven design.
 - Scales Bash scripts through discipline, readability, and predictable data flow.
 - Minimizes unnecessary language and runtime dependencies while embracing external tools.
@@ -21,21 +21,23 @@
 
 <hr>
 
-figure out where to add a section discussing the increase in efficiency by dumping computational responsbilities to awk, as opposed to just base bash
-
 ## Table of Contents
 - [1 Introduction and Methodology](#1-introduction-and-methodology)
   - [1a Mental Model](#1a-mental-model)
-- [2 General-Purpose Programming with BAWK](#2-general-purpose-programming-with-bawk)
-- [3 Object Orientation with BAWK](#3-object-orientation-with-bawk)
-- [4 Readability and Survival](#4-readability-and-survival)
-- [5 Separation of Technical Duties](#5-separation-of-technical-duties)
-- [6 Structure, Syntax, and Semantics](#6-structure-syntax-and-semantics)
-  - [6a Integrated Development Environment](#6a-integrated-development-environment)
-  - [6b Structure and Formatting](#6b-structure-and-formatting)
-  - [6c Efficiency Constraints](#6c-efficiency-constraints)
-  - [6d Antipatterns and Hard Rules](#6d-antipatterns-and-hard-rules)
-- [7 Conclusion](#7-conclusion)
+- [2 Programming with BAWKP](#2-programming-with-bawkp)
+  - [2a General-Purpose Programming](#2a-general-purpose-programming)
+  - [2b Object-Oriented Programming](#2b-object-oriented-programming)
+- [3 Separation of Technical Duties](#3-separation-of-technical-duties)
+- add subsections here
+- also completely rework this section
+- add a section discussing the increase in efficiency by dumping computational responsbilities to awk, as opposed to just base bash
+- [4 Structure, Syntax, and Semantics](#4-structure-syntax-and-semantics)
+  - [4a Integrated Development Environment](#4a-integrated-development-environment)
+  - [4b Structure and Formatting](#4b-structure-and-formatting)
+  - [4c Efficiency Constraints](#4c-efficiency-constraints)
+  - [4d Antipatterns and Hard Rules](#4d-antipatterns-and-hard-rules)
+- [5 Readability and Survival](#5-readability-and-survival)
+- [6 Conclusion](#6-conclusion)
 
 ## Quick References
 
@@ -50,16 +52,17 @@ figure out where to add a section discussing the increase in efficiency by dumpi
 
 BAWK Programming (“b/awk/p” or “BAWKP”) is the deliberate programming methodology that treats the combination of Bash and AWK as an integrated programming environment, rather than simple Bash scripts that coincidentally invoke AWK as an external tool. It is not a new language or software framework; it is not even considered a "better Bash". BAWKP is the discipline defined by explicit conventions and boundaries that transforms customary Bash practices into an engineered system. While it is already common to use Bash and AWK together, AWK is generally used like any other external tool by informally chaining commands until the user receives the desired output, growing one-liners into fragile pipelines, and letting logic drift into whichever external tool happens to be most convenient. BAWKP makes this implicit practice explicit by enforcing a clear separation of duties: Bash is responsible for orchestration; and AWK is responsible for computation. Bash becomes fragile when burdened with pattern matching, transformation, field semantics, and aggregation, while AWK becomes opaque when used for control flow and process management. BAWKP produces scripts that remain readable under pressure, predictable in behavior, and resilient by formalizing the responsibilities of each tool, especially in hostile environments common to offensive security and active defense.
 
-
-continue here
-
-BAWK can be understood as a pragmatic, compositional form of language-oriented programming, not because it invents new syntax, but because it treats Bash and AWK as distinct languages with clearly defined roles and composes them intentionally rather than opportunistically. Bash is not being stretched into other languages, and AWK is not being pressed into service as a general parser; each is used where it is strongest, and the programming model emerges from the contract between them. However, this methodology reserves the opportunity of incorporating other languages when specific contexts extend beyond defined limits. As BAWK was originally designed for offensive security, Python is a natural language to resort to when more complex computation or functionality is required. This perspective naturally leads to a “BAWK first, Python second” mentality, which is not an anti-Python stance but a forcing function for clarity. Many tasks that are routinely escalated to Python—line-oriented parsing, field extraction, text transformation, and aggregation—are precisely what AWK already does efficiently and transparently. When BAWK hands off to another language, that decision should be driven by a genuine mismatch in problem shape, such as structured parsing, complex stateful logic, nontrivial protocols, or rich user interfaces, and that handoff should remain minimal and explicit. The result is an approach that scales from quick automation to substantial tooling without collapsing into a brittle tangle of pipes and one-liners.
+BAWKP can be considered as a form of compositional language-oriented programming, because it embraces Bash and AWK as distinct languages with clearly defined roles and composes them intentionally, rather than opportunistically. Each language is used where it is strongest with object orientation structured where appropriate, and the programming model emerges from the contract between them. However, this methodology reserves the opportunity of incorporating external tools and other languages when specific contexts extend beyond the defined limits. External tools integrate directly into Bash scripts by design, while other languages can be called directly from Bash scripts. Therefore, it is important to understand when and how to use them. For example, AWK fails at parsing hierarchical data, so it is important to delegate the responsibility of parsing structured input to external tools, rather than forcing AWK beyond its strengths. Likewise, BAWKP has very strict guidelines for what it should and should not do. If the specific context requires additional functionality, then it is important to delegate that responsibility to an appropriate language with that delegation being as minimial as possible. And with offensive security in mind, Python naturally becomes the tertiary language of choice. This perspective ensures that Bash and AWK have their own explicit responsibilities with explicit boundaries. The result is an approach that scales from basic automation to substantial tooling while preserving structural integrity and clarity.
 
 ## 1a Mental Model
 
 The mental model behind BAWK treats a script as a small, self-contained environment with clearly assigned responsibilities, not as a sequence of commands that merely happen to work together. Bash defines the structure of the program: it establishes the entrypoint, enforces safety and runtime assumptions, parses inputs, manages state, and coordinates execution across files, hosts, and command-line tools. AWK is where the program’s actual computation resides—not only filtering text, but expressing meaning, validating structure, performing transformations, aggregations, and calculations, and emitting outputs that are deliberate rather than incidental. The broader Unix toolchain is used directly and unapologetically wherever it provides native capability, with Bash orchestrating execution and AWK consuming and reshaping results instead of attempting to simulate those tools through brittle shell logic or ad-hoc regex. The model creates constant architectural pressure: computation leaking into Bash is a warning sign; orchestration leaking into AWK is equally suspect; re-implementing existing tools is almost always a design failure; and Python should only be used when the specific situation dictates that necessity. When followed consistently, this mental model turns data flow into an intentional design decision and transforms shell scripts from fragile pipeline artifacts into programs that can be read, reasoned about, and trusted under real operational stress.
 
-# 2 General-Purpose Programming with BAWK
+# 2 Programming with BAWKP
+
+insert intro here
+
+## 2a General-Purpose Programming
 
 General-purpose programming models must be able to define a program lifecycle, accept inputs, represent and mutate state, express conditional logic and iteration, handle errors predictably, and produce meaningful outputs across a range of domains. Under this definition, the question BAWK addresses is not whether Bash alone qualifies as a general-purpose language, but whether Bash and AWK together can form a disciplined, coherent environment capable of expressing complete programs within their natural operational scope.
 
@@ -71,7 +74,7 @@ The strengths of this approach are practical. BAWK operates close to the system,
 
 The claim to general-purpose programming is deliberately scoped. It asserts that within the natural operational domain of shell scripting—automation, tooling, dataflow, and system interaction—Bash and AWK, when used together with discipline, are sufficient to build real programs that are readable, predictable, and survivable. The methodology does not promise universality; it promises control in environments where correctness and trust are essential.
 
-# 3 Object Orientation with BAWK
+## 2b Object-Oriented Programming
 
 Object-oriented programming is often reduced to surface features—classes, inheritance, or familiar keywords—but those features are not the essence of the model. At its core, object orientation is a way of structuring programs around responsibility-bearing units that combine behavior with controlled access to state, and that interact through stable interfaces rather than through shared, informal assumptions. An “object” is not defined by syntax; it is defined by the role it plays in the design. It encapsulates state behind a boundary, exposes operations that are meaningful in the domain, and makes program structure easier to reason about by localizing decisions and preventing uncontrolled coupling. In that sense, object orientation is less about what the language provides automatically and more about what the programmer enforces intentionally: boundaries, invariants, and disciplined interaction. Under that definition, the question BAWK asks is not whether Bash or AWK can impersonate a classical OOP language, but whether they can support object orientation within their natural constraints. BAWK’s answer is pragmatic: it treats object orientation as an architectural discipline that can be approximated through conventions, and it limits the scope of “objects” to what the environment can support reliably. Bash is used to model units of control, state, and orchestration as object-like structures, while AWK is used to model computational behavior over data streams as dedicated processors. The result is not class-based object orientation, like Python; it is a compositional object model where the “objects” are primarily orchestration entities and the pseudo-methods they expose are well-defined operations that delegate computation to AWK under explicit contracts. Below are the primary characteristics that define object-orientation in BAWKP:
 
@@ -89,15 +92,7 @@ Object-oriented programming is often reduced to surface features—classes, inhe
 
 In practice, this model yields many of the benefits people seek from OOP—readability, maintainability, controlled complexity, and safer change—without pretending that Bash is secretly an OOP language. BAWK does not claim that object orientation emerges automatically from syntax; it claims that object orientation can be enforced as design discipline even in a constrained environment, and that this discipline is especially valuable in the domains BAWK targets. When scripts grow into tooling, when operations become multi-stage workflows, and when correctness must survive hostile inputs and rushed debugging, the ability to reason in terms of responsibility-bearing units and explicit contracts is not a stylistic preference—it is a survival trait. BAWK expresses the core object-oriented concerns of encapsulation, responsibility-bound behavior, interfaces, and polymorphism through disciplined structure and explicit contracts, while intentionally avoiding inheritance in favor of composition.
 
-# 4 Readability and Survival
-
-Readability is survival in Bash. Poor readability is primarily a maintenance concern; however, it's an operational hazard in Bash. This distinction is fundamental to understanding why BAWK exists. Bash was designed first as an interactive command interpreter rather than a safe or expressive programming language, and as a result it is saturated with implicit behavior: word splitting, glob expansion, parameter expansion, command substitution, and multiple evaluation passes occur automatically and often invisibly. While these behaviors are powerful at the command line, in scripts they create an environment where small ambiguities can produce disproportionately large and destructive outcomes. A Bash script can execute successfully while doing the wrong thing, and the shell will often provide no indication that this has occurred. Unlike many higher-level languages, Bash offers almost no structural protection against misuse—there is no type system to catch invalid operations, no enforced scoping to prevent accidental state leakage, and no consistent failure model unless one is imposed deliberately—so errors tend to manifest not as crashes, but as silent misbehavior. A direct consequence of this design is that many Bash failures are not logical bugs in the traditional sense, but visual ones: code that appears reasonable at a glance can encode radically different semantics when executed. A missing quote, an unclear pipeline, or a misaligned conditional block can transform safe intent into hazardous behavior without altering the apparent structure of the script. In Bash, code that “looks right” is not necessarily close to being correct, because the reader must mentally simulate expansion rules to understand what will happen, a requirement that makes shell code inherently fragile—particularly in contexts involving filesystem modification, network interaction, or security-sensitive automation.
-
-BAWK treats this problem as a human-factors issue rather than a purely technical one. If correctness depends on the reader’s ability to recall and mentally apply dozens of implicit shell rules while reading a script, then correctness has already failed. For this reason, the methodology elevates formatting, structure, and visual clarity to the level of correctness tools rather than aesthetic preferences. Consistent indentation, explicit control flow, disciplined naming, and predictable layout exist to expose meaning and make dangerous constructs visible before execution, not to satisfy stylistic convention. Because Bash provides little inherent protection against misuse, readability functions as a compensating control: code must be written so that misuse is difficult to hide and intent is immediately apparent. A reader should be able to understand what a script does without pausing to reason about expansion order, quoting subtleties, or hidden side effects. If a script requires careful mental parsing to establish its safety, it is already unsafe in practice. In Bash, hesitation is a signal that the code has exceeded the limits of what can be trusted.
-
-The rule that emerges from this analysis is intentionally blunt: if a Bash script cannot be immediately understood by reading it, it should not be trusted. More strongly, if the formatting or structure of a script causes the reader to pause and reason about what it might do, the script should be rewritten before it is run. Other languages can tolerate cleverness because they provide guardrails that catch mistakes. Bash does not. BAWK exists to impose those guardrails through discipline, structure, and clarity. Everything that follows in this methodology rests on this foundation. 
-
-# 5 Separation of Technical Duties
+# 3 Separation of Technical Duties
 
 The separation of technical duties in BAWK is where this methodology becomes enforceable. Earlier sections establish that Bash controls orchestrations while AWK controls computation, but that distinction only matters if it materially changes how scripts are written. This section exists to demonstrate that change in practice. In BAWK, separation of duties is not a stylistic preference; it is the mechanism that prevents shell scripts from collapsing into pipelines whose behavior cannot be trusted once they grow beyond trivial size. Below are three examples of what BAWK can solve. 
 
@@ -239,7 +234,7 @@ awk -F',' '
 
 ### Lexical Processing Boundaries
 
-At the same time, BAWK is explicit about where AWK’s authority ends. AWK is treated as a lexer and transformer for line-oriented data, not as a general parser. When the input is structured (e.g. JSON, YAML, or any format whose semantics are not line-based) attempting to interpret it with AWK is a correctness failure, even if it appears to work on sample data. In those cases, BAWK establishes a hard boundary and delegates parsing to an external tool, then hands a normalized projection back to AWK for computation:
+BAWK is explicit about where AWK’s authority ends. AWK is treated as a lexer and transformer for line-oriented data, not as a general parser. When the input is structured (e.g. JSON, YAML, or any format whose semantics are not line-based) attempting to interpret it with AWK is a correctness failure, even if it appears to work on sample data. In those cases, BAWK establishes a hard boundary and delegates parsing to an external tool, then hands a normalized projection back to AWK for computation:
 
 ```
 some_tool --json |
@@ -249,13 +244,13 @@ awk -F'\t' '$2 >= 7 { print $1 }'
 
 > The separation here is deliberate. The structured parser owns structure. AWK owns record-level meaning. Bash orchestrates the flow. No layer pretends to understand data it cannot reliably interpret. And Bash was chosen *because* of how close it works with command-line utilities in Unix, so use them. 
 
-# 6 Structure, Syntax, and Semantics
+# 4 Structure, Syntax, and Semantics
 
 Bash is responsible for orchestration; AWK is responsible for computation. The preceding sections explained this philosophy and how it applies to this methodology, including a technical representation of the separation of duties between Bash and AWK. This section will explain and specify how that philosophy is enforced and applied in practice. What follows is not guidance, preference, or stylistic advice, but a rulebook derived directly from the BAWK contract: Bash is responsible for orchestration, state, and control flow; AWK is responsible for interpreting, transforming, and aggregating line-oriented data; and specialist tools are responsible for structured parsing and domain-specific work. These roles are exclusive, and violations are treated as design errors rather than stylistic disagreements. The rules in this section exist to preserve readability, correctness, and survivability as scripts grow, change, and are executed under operational pressure. A script that adheres to these rules qualifies as a BAWK program; a script that does not may still function, but it no longer conforms to the methodology.
 
 THIS WHOLE SECTION MIGHT NEED TO BE REFORMATTED, INCLUDING HEADER STYLES VS BOLDING OF HEADERS
 
-## 6a Integrated Development Environment
+## 4a Integrated Development Environment
 
 Because BAWK relies on explicit structure and clear separation of responsibility, the Integrated Development Environment ("IDE") that's used is an integral part of the methodology’s enforcement surface. A properly-configured editor reduces accidental violations of the BAWK contract by making unsafe constructs visible early and by enforcing consistent structure automatically. In practice, this means the IDE is treated as a policy gate for formatting, static analysis, and readability checks. Policies that are applied continuously rather than after failures occur. For BAWK, the primary IDE of choice is [Visual Studio Code ("VS Code")](https://code.visualstudio.com/) due to its simplicity, language support, available extensions, integrated terminal, and customizability. For VS Code, BAWK requires only a small number of extensions, but they should be configured strictly. The goal is not to optimize typing speed or developer comfort, but to preserve clarity, predictability, and survivability as scripts grow and are revisited under operational pressure. Below is a consolidated list of requirements that are considered "non-negotiable" for BAWKP. 
 
@@ -297,7 +292,7 @@ The following VS Code settings improve BAWKP development and help enforce the me
 
 The objective of this setup is simple: the editor should actively push the developer toward the BAWK contract. Unsafe Bash constructs become obvious, formatting errors are corrected automatically, and AWK logic remains readable as first-class program logic rather than incidental text processing. When the IDE enforces these constraints continuously, discipline ceases to be a matter of personal vigilance and becomes a property of the environment itself.
 
-## 6b Structure and Formatting
+## 4b Structure and Formatting
 
 As previously stated, structure and formatting are part of the semantic contract of the methodology. Because Bash and AWK operate in environments rich with implicit behavior, visual structure is one of the few reliable tools available to make intent explicit and misuse visible; therefore, structure and formatting are treated as a correctness mechanism. Code that is poorly structured may still execute, but it no longer satisfies the requirements of the methodology, because it cannot be trusted under review, refactoring, or operational pressure. Crucially, these rules apply symmetrically to Bash and AWK. One of the most common failures in shell-based systems is to treat Bash as “real code” while relegating AWK to dense, unreadable one-liners. BAWK rejects this distinction. AWK is a first-class programming language within the methodology and must be held to the same standards of readability, structure, and explicitness as Bash. A BAWK program is only as readable as its least readable component. What follows is the unified structure-and-formatting rule set for both Bash and AWK. Where rules differ, the distinction is explicit; where they align, that alignment is intentional.
 
@@ -644,7 +639,7 @@ This consistency allows readers to orient themselves immediately.
 
 If the structure of a Bash or AWK program requires careful reading to understand its control flow or data semantics, it is already unsafe and should be rewritten before it is trusted. In BAWK, formatting and structure are not aesthetic preferences; they are part of the program’s safety surface—the primary mechanism for making intent obvious and making dangerous ambiguity visible before execution. This is also where tooling becomes enforceable policy rather than optional guidance. For Bash specifically, ShellCheck functions as a policy enforcer: if ShellCheck flags a construct as unsafe or incorrect, then within the BAWK contract it is treated as unsafe or incorrect. The only acceptable exception is an explicit, documented justification explaining why the warning does not apply in that specific context. Anything else is rationalization, and rationalization is how shell scripts become unreviewable and untrustworthy over time. A script may still “work” while violating these rules, but it no longer qualifies as a BAWK program, because it has abandoned the constraints that make the methodology survivable under refactoring and operational stress. In the next section, these structural rules are paired with efficiency constraints, demonstrating that disciplined formatting and disciplined performance are not competing concerns—they reinforce the same goal: reducing ambiguity, reducing failure modes, and keeping shell programs predictable as they scale.
 
-## 6c Efficiency Constraints
+## 4c Efficiency Constraints
 
 In BAWK, efficiency is not an optimization concern; it is a correctness constraint. Inefficient shell programs are almost always inefficient because responsibilities have leaked across boundaries: Bash is interpreting data, AWK is being fragmented into multiple passes, or external tools are being invoked redundantly. These failures do not merely waste time—they introduce ambiguity, amplify failure modes, and reduce trust in the program’s behavior under operational pressure. The rules in this section are therefore mandatory. They exist to preserve the execution model assumed by BAWK: Bash orchestrates sparingly, AWK computes deterministically in-process, and external tools are invoked only when they provide unique capability. Scripts that violate these rules may still run, but they no longer conform to the methodology.
 
@@ -833,7 +828,7 @@ Violations MUST be documented or corrected. Undocumented violations are consider
 
 Bash is obviously not known for its speed; however, efficiency is not about speed for its own sake. It is about aligning program structure with the execution model of the tools involved. Bash is efficient when it orchestrates sparsely and predictably. AWK is efficient when it computes densely and deterministically in a single process. External tools are efficient when invoked once to do the work they are uniquely suited for. When these constraints are respected, performance improvements often emerge naturally as a consequence of clear design. When they are violated, inefficiency becomes an early warning signal that the program’s architecture is no longer trustworthy. In BAWK, efficiency is therefore not optional—it is a structural requirement that reinforces the methodology’s core promise: shell programs that remain predictable, reviewable, and survivable as they scale.
 
-## 6d Antipatterns and Hard Rules
+## 4d Antipatterns and Hard Rules
 
 This section defines behaviors that are categorically forbidden in BAWK programs. These rules exist because the patterns they prohibit are responsible for the majority of real-world shell failures: silent misbehavior, data corruption, privilege escalation, and irreversible damage. In Bash, especially, many constructs that appear harmless or idiomatic are in fact traps whose failure modes are invisible until they are catastrophic. BAWK treats these patterns as design defects, not learning opportunities. These rules are intentionally strict. They eliminate ambiguity, prevent entire classes of bugs, and ensure that scripts remain reviewable and trustworthy under operational stress. Any script that violates these rules no longer qualifies as a BAWK program, regardless of whether it “works” in testing.
 
@@ -1089,7 +1084,15 @@ If a construct requires justification to be safe, it is not safe by default. If 
 
 BAWK exists to remove ambiguity, not to manage it. These antipatterns are forbidden because they turn shell scripts into latent hazards. Eliminating them is the price of predictability—and predictability is the foundation on which the rest of the methodology stands.
 
-# 7 Conclusion
+# 5 Readability and Survival
+
+Readability is survival in Bash. Poor readability is primarily a maintenance concern; however, it's an operational hazard in Bash. This distinction is fundamental to understanding why BAWK exists. Bash was designed first as an interactive command interpreter rather than a safe or expressive programming language, and as a result it is saturated with implicit behavior: word splitting, glob expansion, parameter expansion, command substitution, and multiple evaluation passes occur automatically and often invisibly. While these behaviors are powerful at the command line, in scripts they create an environment where small ambiguities can produce disproportionately large and destructive outcomes. A Bash script can execute successfully while doing the wrong thing, and the shell will often provide no indication that this has occurred. Unlike many higher-level languages, Bash offers almost no structural protection against misuse—there is no type system to catch invalid operations, no enforced scoping to prevent accidental state leakage, and no consistent failure model unless one is imposed deliberately—so errors tend to manifest not as crashes, but as silent misbehavior. A direct consequence of this design is that many Bash failures are not logical bugs in the traditional sense, but visual ones: code that appears reasonable at a glance can encode radically different semantics when executed. A missing quote, an unclear pipeline, or a misaligned conditional block can transform safe intent into hazardous behavior without altering the apparent structure of the script. In Bash, code that “looks right” is not necessarily close to being correct, because the reader must mentally simulate expansion rules to understand what will happen, a requirement that makes shell code inherently fragile—particularly in contexts involving filesystem modification, network interaction, or security-sensitive automation.
+
+BAWK treats this problem as a human-factors issue rather than a purely technical one. If correctness depends on the reader’s ability to recall and mentally apply dozens of implicit shell rules while reading a script, then correctness has already failed. For this reason, the methodology elevates formatting, structure, and visual clarity to the level of correctness tools rather than aesthetic preferences. Consistent indentation, explicit control flow, disciplined naming, and predictable layout exist to expose meaning and make dangerous constructs visible before execution, not to satisfy stylistic convention. Because Bash provides little inherent protection against misuse, readability functions as a compensating control: code must be written so that misuse is difficult to hide and intent is immediately apparent. A reader should be able to understand what a script does without pausing to reason about expansion order, quoting subtleties, or hidden side effects. If a script requires careful mental parsing to establish its safety, it is already unsafe in practice. In Bash, hesitation is a signal that the code has exceeded the limits of what can be trusted.
+
+The rule that emerges from this analysis is intentionally blunt: if a Bash script cannot be immediately understood by reading it, it should not be trusted. More strongly, if the formatting or structure of a script causes the reader to pause and reason about what it might do, the script should be rewritten before it is run. Other languages can tolerate cleverness because they provide guardrails that catch mistakes. Bash does not. BAWK exists to impose those guardrails through discipline, structure, and clarity. Everything that follows in this methodology rests on this foundation. 
+
+# 6 Conclusion
 
 At the end of the day, you are just learning Bash and AWK. BAWK is not a claim that Bash and AWK are secretly something they are not. It does not assert that shell scripting should replace full application languages, nor does it attempt to turn Unix tooling into a general software platform. At the end of the day, BAWK is simply the disciplined use of Bash and AWK—two mature, well-understood tools—combined into a unified approach. The methodology exists to make that combination explicit, enforceable, and survivable in environments where shell scripts are expected to do real work under real pressure. Nothing more is promised, and nothing less is acceptable.
 
