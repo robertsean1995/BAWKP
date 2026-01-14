@@ -1,4 +1,5 @@
-<div align="center">**W O R K   I N   P R O G R E S S**</div>
+<p align="center"><b>W O R K   I N   P R O G R E S S</b></p>
+
 
 ![BAWK Programming Logo](/images/BAWK_Logo.png)
 
