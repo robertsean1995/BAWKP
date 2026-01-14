@@ -1,3 +1,5 @@
+**W O R K   I N   P R O G R E S S**
+
 ![BAWK Programming Logo](/images/BAWK_Logo.png)
 
 <div align="center">
