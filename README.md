@@ -140,7 +140,7 @@ Methods implemented within a class are orchestration methods. Their responsibili
 
 # 3 Responsibility Boundaries in BAWKP
 
-## 3a Computational Offloading and Performance Discipline
+## 3a Computation and Efficiency
 
 ## 3b Centralized Text Processing
 
@@ -184,9 +184,9 @@ awk -F'\t' '$2 >= 7 { print $1 }'
 
 The separation here is deliberate. The structured parser owns structure. AWK owns record-level meaning. Bash orchestrates the flow. No layer pretends to understand data it cannot reliably interpret. And Bash was chosen *because* of how close it works with command-line utilities in Unix, so use them. 
 
-## 3d State Ownership and Data Flow Boundaries
+## 3d State Authority and Ownership
 
-## 3e Failure Modes Prevented by Enforced Separation
+## 3e Failure Modes and Boundary Violations
 
 # 4 Structure, Syntax, and Semantics
 
