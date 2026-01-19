@@ -140,7 +140,11 @@ Methods implemented within a class are orchestration methods. Their responsibili
 
 # 3 Responsibility Boundaries in BAWKP
 
-## 3a Centralized Text Processing
+## 3a Computational Offloading and Performance Discipline
+
+## 3b Centralized Text Processing
+
+Alongside 3a, awk is also . . . 
 
 In non-BAWK scripts, it is common to scatter meaning across chains of grep, sed, and formatting commands, each making small, implicit assumptions about the data. I do understand that it's generally accepted that each tool (GREP, SED, and AWK, specifically) does their own job better than AWK can do alone; however, this idea of consolidating the number of tools to just AWK is actually the seed from which BAWKP grew. Even if AWK is considered a turing-complete programming language, and the other tools are rather simple to learn, I thought it was more approachable to learn one tool rather than three.
 
@@ -166,7 +170,9 @@ awk -F',' '
 
 This is not about eliminating grep or sed for ideological reasons. It is about coherence. One processor owns the definition of valid input, how it is cleaned, and what output shape is produced. The script has a single point of truth for what the data means.
 
-## 3b Syntactic Processing Boundaries
+## 3c Syntactic Processing Boundaries
+
+Alongside 3a and 3b, awk is also . . . 
 
 BAWK is explicit about where AWK’s authority ends. AWK is treated as a lexer and transformer for line-oriented data, not as a general parser. When the input is structured (e.g. JSON, YAML, or any format whose semantics are not line-based) attempting to interpret it with AWK is a correctness failure, even if it appears to work on sample data. In those cases, BAWK establishes a hard boundary and delegates parsing to an external tool, then hands a normalized projection back to AWK for computation:
 
@@ -178,9 +184,9 @@ awk -F'\t' '$2 >= 7 { print $1 }'
 
 The separation here is deliberate. The structured parser owns structure. AWK owns record-level meaning. Bash orchestrates the flow. No layer pretends to understand data it cannot reliably interpret. And Bash was chosen *because* of how close it works with command-line utilities in Unix, so use them. 
 
-## 3c Computational Offloading and Performance Discipline
+## 3d State Ownership and Data Flow Boundaries
 
-## 3d Failure Modes Prevented by Enforced Separation
+## 3e Failure Modes Prevented by Enforced Separation
 
 # 4 Structure, Syntax, and Semantics
 
