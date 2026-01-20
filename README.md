@@ -29,11 +29,12 @@
 - [2 Programming with BAWKP](#2-programming-with-bawkp)
   - [2a General-Purpose Programming](#2a-general-purpose-programming)
   - [2b Object-Oriented Programming](#2b-object-oriented-programming)
-- [3 Separation of Technical Duties](#3-separation-of-technical-duties)
-- completely rework this section
-- add new subsections here
-- add a section discussing the increase in efficiency by dumping computational responsbilities to awk, as opposed to just base bash
-- move the class exmaple to 2b
+- [3 Responsibility Boundaries of BAWKP](#3-responsibility-boundaries-of-bawkp)
+  - [3a Computation and Efficiency](#3a-computation-and-efficiency)
+  - [3b Centralized Text Processing](#3b-centralized-text-processing)
+  - [3c Syntactic Processing Boundaries](#3c-syntactic-processing-boundaries)
+  - [3d State Authority and Ownership](#3d-state-authority-and-ownership)
+  - [3e Failure Modes and Boundary Violations](#3e-failure-modes-and-boundary-violations)
 - [4 Structure, Syntax, and Semantics](#4-structure-syntax-and-semantics)
   - [4a Integrated Development Environment](#4a-integrated-development-environment)
   - [4b Structure and Formatting](#4b-structure-and-formatting)
@@ -41,9 +42,12 @@
   - [4d Antipatterns and Hard Rules](#4d-antipatterns-and-hard-rules)
 - [5 Readability and Survival](#5-readability-and-survival)
 - [6 Conclusion](#6-conclusion)
+- [7 Appendices](#7-appendices)
+  - [7a Applied Patterns](#7a-applied-patterns)
 
 ## Quick References
 
+- [Class Structure](#class-structure)
 - [The Structure Rule, Restated](#the-structure-rule-restated)
 - [The Efficiency Rule, Restated](#the-efficiency-rule-restated)
 - [The Antipatterns List, Restated](#the-antipatterns-list-restated)
@@ -138,7 +142,11 @@ This structure establishes several invariants. First, the class has a single pub
 
 Methods implemented within a class are orchestration methods. Their responsibilities include validating inputs, sequencing actions, invoking external tools, handling errors, and enforcing contracts. Classes do not interpret data, classify records, or perform aggregation. Any method that assigns meaning to data is delegated to an AWK processor or another appropriate specialist. In this model, computation is not embedded inside methods; it is explicitly invoked and treated as an external capability. Classes interact by invoking each other’s command surfaces and by exchanging data that conforms to contractual shapes. This produces a compositional object model in which responsibilities remain local, interfaces remain stable, and behavior remains intelligible as systems grow. This class structure completes the object-oriented model defined by BAWKP. Objects are not general computation engines or passive data containers. They are orchestration boundaries that own state, expose intent through explicit methods, and coordinate deterministic computation performed elsewhere.
 
-# 3 Responsibility Boundaries in BAWKP
+# 3 Responsibility Boundaries of BAWKP
+
+This methodology has hitherto focused primarily on the conceptual framing of Bash and AWK as a unified system and on Bash itself. 
+
+While this establishes the philosophical and structural foundation of BAWKP, it does not yet fully articulate how responsibility is divided between the two environments in practice. Bash and AWK differ not only in syntax, but in execution model, performance characteristics, and suitability for sustained computation. Without explicitly defining how these differences are leveraged, the boundary between orchestration and processing remains ambiguous. This section formalizes the responsibility handoff from Bash to AWK, clarifies the role AWK plays within the overall framework, and defines the constraints that govern how computation, text processing, syntax interpretation, and state are assigned and enforced within BAWKP.
 
 ## 3a Computation and Efficiency
 
@@ -216,7 +224,7 @@ Ultimately, BAWK is a way of thinking about shell scripting as programming, not 
 
 # 7 Appendices
 
-## Applied Patterns
+## 7a Applied Patterns
 
 - **Bash interpreting data instead of orchestration it.** A common failure mode in conventional shell scripting is allowing Bash to interpret data directly. Line-by-line loops, ad-hoc conditionals, and incremental string munging all seem reasonable until expansion rules and quoting subtleties turn intent into accident. A typical example looks harmless:
 
