@@ -10,7 +10,7 @@
 
 <hr>
 
-**BAWK Programming ("b/awk/p" or "BAWKP") is an unconventional programming methodology based on compositional language-oriented programming. It treats Bash as a general-purpose programming language with object-oriented elements for orchestration, while composing AWK as a domain-specific programming language for data processing and computation. This idea was originally conceived while trying to improve my own offensive security methodologies. Learning Bash, AWK, and Python is only natural for offensive security engineers, and I wanted a way to combine them into a unified approach.**
+**BAWK Programming ("b/awk/p" or "BAWKP") is an unconventional programming methodology based on compositional language-oriented programming. It treats Bash as a general-purpose programming language with object-oriented elements for orchestration, while composing AWK as a domain-specific programming language for computation. This idea was originally conceived while trying to improve my own offensive security methodologies. Learning Bash, AWK, and Python is only natural for offensive security engineers, and I wanted a way to combine them into a unified approach.**
 
 **The name "BAWK" is derived from a combination of Bash and AWK. The logo is made to resemble a regular expression in the same style as GREP ("g/re/p"), and the chickens are a lighthearted reference to the onomatopoeia of the same name.**
 - Formalizes Bash and AWK as a unified programming environment.
@@ -57,7 +57,7 @@
 
 # 1 Introduction and Methodology
 
-BAWK Programming (“b/awk/p” or “BAWKP”) is the deliberate programming methodology that treats the combination of Bash and AWK as an integrated programming environment, rather than simple Bash scripts that coincidentally invoke AWK as an external tool. It is not a new language or software framework; it is not even considered a "better Bash". BAWKP is the discipline defined by explicit conventions and boundaries that transforms customary Bash practices into an engineered system. While it is already common to use Bash and AWK together, AWK is generally used like any other external tool by informally chaining commands until the user receives the desired output, growing one-liners into fragile pipelines, and letting logic drift into whichever external tool happens to be most convenient. BAWKP makes this implicit practice explicit by enforcing a clear separation of duties: Bash is responsible for orchestration; and AWK is responsible for computation. Bash becomes fragile when burdened with pattern matching, transformation, field semantics, and aggregation, while AWK becomes opaque when used for control flow and process management. BAWKP produces scripts that remain readable under pressure, predictable in behavior, and resilient by formalizing the responsibilities of each tool, especially in hostile environments common to offensive security and active defense.
+BAWK Programming (“b/awk/p” or “BAWKP”) is a programming methodology that treats the combination of Bash and AWK as an integrated programming environment, rather than simple Bash scripts that coincidentally invoke AWK as an external tool. It is not a new language or software framework; it is not even trying to be a "better Bash". BAWKP is the discipline defined by explicit conventions and boundaries that transforms customary Bash practices into an engineered system. While it is already common to use Bash and AWK together, AWK is generally used like any other external tool by informally chaining commands until the user receives the desired output, growing one-liners into fragile pipelines, and letting logic drift into whichever external tool happens to be most convenient. BAWKP makes this implicit practice explicit by enforcing a clear separation of duties: Bash is responsible for orchestration; and AWK is responsible for computation. Bash becomes fragile when burdened with pattern matching, transformation, field semantics, and aggregation, while AWK becomes opaque when used for control flow and process management. BAWKP produces scripts that remain readable under pressure, predictable in behavior, and resilient by formalizing the responsibilities of each tool, especially in hostile environments common to offensive security and active defense.
 
 BAWKP can be considered as a form of compositional language-oriented programming, because it embraces Bash and AWK as distinct languages with clearly defined roles and composes them intentionally, rather than opportunistically. Each language is used where it is strongest with object orientation structured where appropriate, and the programming model emerges from the contract between them. However, this methodology reserves the opportunity of incorporating external tools and other languages when specific contexts extend beyond the defined limits. External tools integrate directly into Bash scripts by design, while other languages can be simply called from Bash scripts. Therefore, it is important to understand when and how to use them. For example, AWK fails at parsing hierarchical data, so it is important to delegate the responsibility of parsing structured input to external tools, rather than forcing AWK beyond its strengths. Likewise, BAWKP has very strict guidelines for what it should and should not do. If the specific context requires additional functionality, then it is important to delegate that responsibility to an appropriate language with that delegation being as minimial as possible. And with offensive security in mind, Python naturally becomes the tertiary language of choice. This perspective ensures that Bash and AWK have their own explicit responsibilities with explicit boundaries. The result is an approach that scales from basic automation to substantial tooling while preserving structural integrity and clarity.
 
@@ -144,17 +144,54 @@ Methods implemented within a class are orchestration methods. Their responsibili
 
 # 3 Responsibility Boundaries of BAWKP
 
-This methodology has hitherto focused primarily on the conceptual framing of Bash and AWK as a unified system and on Bash itself. 
-
-While this establishes the philosophical and structural foundation of BAWKP, it does not yet fully articulate how responsibility is divided between the two environments in practice. Bash and AWK differ not only in syntax, but in execution model, performance characteristics, and suitability for sustained computation. Without explicitly defining how these differences are leveraged, the boundary between orchestration and processing remains ambiguous. This section formalizes the responsibility handoff from Bash to AWK, clarifies the role AWK plays within the overall framework, and defines the constraints that govern how computation, text processing, syntax interpretation, and state are assigned and enforced within BAWKP.
+This methodology has hitherto focused primarily on the conceptual framing of Bash and AWK as a unified system and on Bash itself. However, it has not yet fully articulated how the responsibility is practically divided between the two environments. Bash and AWK differ in syntax, execution model, performance characteristics, and suitability for sustained computation. And that difference between orchestration and computation remains ambiguous without explicitly defining how these differences are leveraged. This section formalizes the responsibility boundary between Bash to AWK, clarifies the role AWK plays within the overall framework, and defines the constraints that govern how computation, text processing, syntax interpretation, and state are assigned and enforced within BAWKP.
 
 ## 3a Computation and Efficiency
 
+AWK as the primary processor is enforced because Bash and AWK exhibit different cost profiles (i.e. similar in spirit to [cost models](https://en.wikipedia.org/wiki/Analysis_of_algorithms#Cost_models)) under iterative and stateful workloads, and those differences are observable, repeatable, and large enough to affect design feasibility rather than merely runtime tuning. Bash evaluates arithmetic, conditionals, and loops through shell expansion, string evaluation, and repeated parsing of execution context. Even when arithmetic is expressed using built-ins, control flow is mediated through the shell’s evaluation rules, and nontrivial loops frequently involve subshells, command substitution, or external utilities. Each iteration incurs overhead that is independent of the computational work being performed, resulting in execution time that grows rapidly as loop counts, conditional depth, or state mutation increase. AWK executes computation inside a single interpreter instance with native numeric types, in-process control flow, and direct access to associative arrays. Iteration and conditional evaluation do not require re-entering the shell or spawning external processes. In practice, this produces consistent performance differences that are not subtle. Arithmetic-heavy loops, counters, aggregations, and classification logic commonly execute one to two orders of magnitude faster in AWK than in Bash when implemented equivalently. In many cases, logic that becomes impractical or unstable in Bash at thousands of iterations remains trivial in AWK at millions.
+
+The difference becomes clear when examining equivalent implementations. The following script counts occurrences of values in a stream of input lines using Bash:
+
+```
+#!/usr/bin/env bash
+
+declare -A counts
+
+while IFS= read -r line; do
+    ((counts["$line"]++))
+done
+
+for key in "${!counts[@]}"; do
+    printf '%s %d\n' "$key" "${counts[$key]}"
+done
+```
+
+Although this uses associative arrays and built-in arithmetic, each loop iteration still executes within the shell’s evaluation model. As input size grows, overhead from variable expansion, hash lookups, and shell control flow dominates execution time. Performance degrades sharply once iteration counts move beyond modest sizes, and the script becomes sensitive to input volume in ways that are difficult to predict. In BAWKP, the same task is expressed by delegating computation to AWK, with Bash responsible only for orchestration:
+
+```
+#!/usr/bin/env bash
+
+awk '
+{
+    counts[$0]++
+}
+END {
+    for (k in counts) {
+        print k, counts[k]
+    }
+}
+'
+```
+
+This is just a simple example, but the entire aggregation executes inside a single AWK process. Numeric operations, associative array updates, and iteration occur in-process without shell re-evaluation or subshell overhead. It is important to understand that the Bash script does not change as computational complexity increases. Meaning, this implementation scales linearly with input size and remains stable across large datasets.
+
+These differences are not limited to synthetic benchmarks. They emerge immediately in real workloads: log aggregation, record classification, state tracking, simulation-style loops, and repeated decision logic. Bash implementations tend to degrade as control logic expands, while AWK implementations scale predictably with input size and iteration count. As a result, performance characteristics in Bash often dictate architectural decisions prematurely, whereas AWK allows computation to remain local, explicit, and readable without structural compromise. Bash is simply not permitted to retain counters, accumulators, or loop-driven computation beyond minimal control constructs. This prevents scripts from crossing performance thresholds invisibly and ensures execution behavior remains predictable as complexity increases.
+
+Consequently, the results of this responsibility boundary are that computational feasibility, efficency, and speed become an explicit design property. These are not just marginal improvements; BAWKP routinely realizes performance increases orders of magnitude faster than Bash can reasonably provide on its own. Execution time, resource usage, and scaling behavior can be reasoned about directly from code structure. AWK processors are written with the expectation that they may execute thousands or millions of operations, while Bash orchestration remains stable regardless of data volume. This division establishes the performance baseline upon which the remaining responsibility boundaries are built.
+
 ## 3b Centralized Text Processing
 
-Alongside 3a, awk is also . . . 
-
-In non-BAWK scripts, it is common to scatter meaning across chains of grep, sed, and formatting commands, each making small, implicit assumptions about the data. I do understand that it's generally accepted that each tool (GREP, SED, and AWK, specifically) does their own job better than AWK can do alone; however, this idea of consolidating the number of tools to just AWK is actually the seed from which BAWKP grew. Even if AWK is considered a turing-complete programming language, and the other tools are rather simple to learn, I thought it was more approachable to learn one tool rather than three.
+After computational assignment, text processing follows naturally as a related responsibility. All nontrivial interpretation of textual input is centralized within AWK, rather than distributed across external tools, including pattern matching, validation, transformation, normalization, and/or formatting. In conventional shell scripts, it is common to express intent indirectly through chains of utilities (e.g. ```grep```, ```sed```, ```cut```, ```tr```, etc.), each performing a narrow transformation while relying on implicit assumptions about the output of the previous stage. Generally, composing them freely tends to fragment semantics across multiple execution contexts. The resulting pipelines are sensitive to ordering, difficult to audit, and resistant to refactoring because no single component owns the definition of valid input or output shape. For example:
 
 ```
 grep -v '^#' input.csv |
@@ -163,7 +200,7 @@ sed 's/[[:space:]]//g' |
 cut -d',' -f1,2,3
 ```
 
-The intent here is already difficult to reconstruct, and the semantics are distributed across four tools. In BAWK, this fragmentation is avoided by treating AWK as the primary text processing engine. Matching, transformation, validation, and formatting are all expressions of meaning and belong together.
+Here, filtering, validation, whitespace normalization, and field selection are expressed across four tools. The intent must be reconstructed by the reader, and the semantics of the data are implicit, rather than declared. Any modification to the pipeline risks invalidating downstream assumptions in ways that are not locally visible. BAWKP avoids this fragmentation by assigning text interpretation to AWK as a single responsibility. The same logic is expressed as a coherent unit in which input validity, transformation rules, and output structure are defined together.
 
 ```
 awk -F',' '
@@ -176,13 +213,11 @@ awk -F',' '
 ' input.csv
 ```
 
-This is not about eliminating grep or sed for ideological reasons. It is about coherence. One processor owns the definition of valid input, how it is cleaned, and what output shape is produced. The script has a single point of truth for what the data means.
+The processor explicitly defines what constitutes a comment, what fields are meaningful, how values are normalized, and what output is produced. There is a single point of truth for the data’s semantics, and that definition is colocated with the computation that depends on it. This centralization improves readability, reduces implicit coupling, and makes changes to data interpretation visible and auditable. Centralized text processing is a constraint imposed to preserve coherence. When multiple tools share responsibility for interpreting data, meaning becomes distributed and fragile. Here, meaning becomes explicit, local, and testable.
 
 ## 3c Syntactic Processing Boundaries
 
-Alongside 3a and 3b, awk is also . . . 
-
-BAWK is explicit about where AWK’s authority ends. AWK is treated as a lexer and transformer for line-oriented data, not as a general parser. When the input is structured (e.g. JSON, YAML, or any format whose semantics are not line-based) attempting to interpret it with AWK is a correctness failure, even if it appears to work on sample data. In those cases, BAWK establishes a hard boundary and delegates parsing to an external tool, then hands a normalized projection back to AWK for computation:
+After textual processing assignment, BAWKP is equally explicit about the limits of that boundary. AWK is simply a lexer and transformer for line-oriented records with defined field semantics; AWK is not a general-purpose parser for hierarchical or self-describing formats. Attempting to use AWK to infer structure it cannot reliably represent is treated as a correctness failure, even if the approach appears to work on limited input. Formats such as JSON, YAML, XML, and other structured encodings carry semantics that are not line-based and cannot be safely interpreted through regular expressions or field splitting alone. In these cases, BAWKP establishes a hard boundary: structure is parsed by a tool designed to understand that structure, and AWK receives only a normalized projection suitable for record-level computation.
 
 ```
 some_tool --json |
@@ -190,7 +225,9 @@ jq -r '.items[] | [.id, .severity] | @tsv' |
 awk -F'\t' '$2 >= 7 { print $1 }'
 ```
 
-The separation here is deliberate. The structured parser owns structure. AWK owns record-level meaning. Bash orchestrates the flow. No layer pretends to understand data it cannot reliably interpret. And Bash was chosen *because* of how close it works with command-line utilities in Unix, so use them. 
+In this pipeline, each component has a constrained and explicit role. The structured parser owns syntactic correctness and hierarchical meaning. AWK operates only on the flattened, tabular representation produced by that parser. Bash coordinates the flow but does not interpret the data. No layer assumes responsibility for semantics it cannot enforce. This separation prevents a common class of shell scripting failures in which partial parsing logic silently diverges from the true structure of the input. By delegating syntactic interpretation to appropriate tools and reserving AWK for record-level meaning, BAWKP ensures that each processor operates within a domain it can handle deterministically.
+
+Syntactic processing boundaries also preserve flexibility. External parsers can be replaced or upgraded without affecting downstream computation, as long as the projected data shape remains stable. AWK processors remain focused on classification, aggregation, and transformation, independent of how the original structure was represented. By clearly defining where AWK’s authority ends, BAWKP avoids overextension while preserving the benefits of centralized computation and text processing. This boundary ensures that correctness is maintained not by convention, but by construction.
 
 ## 3d State Authority and Ownership
 
