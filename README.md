@@ -373,6 +373,27 @@ awk '
 
 ### Script Headers and Safety Flags
 
+#### Bash
+
+Every BAWK Bash script begins by explicitly establishing its execution environment. This is non-negotiable.
+
+```
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+```
+
+This header is not boilerplate; it defines the failure model of the program. Error propagation, unset-variable handling, pipeline correctness, and word-splitting behavior must be explicit and consistent across all scripts. Additional performance-oriented flags may be added later, but the safety baseline must always be present.
+
+#### AWK
+
+AWK programs embedded in BAWK scripts must also make their execution context explicit. This includes:
+- Explicit field separators (```-F``` or ```BEGIN { FS = ... }```)
+- Explicit output formatting when output is consumed programmatically
+- Explicit initialization of counters and accumulators
+
+If an AWK program relies on defaults (such as whitespace field splitting), that reliance should be obvious from context and justified by simplicity, not convenience.
+
 ### Indentation and Layout
 
 ### Blank Lines as Structure
@@ -380,6 +401,8 @@ awk '
 ### Line Length and Horizontal Density
 
 ### Statements Per Line
+
+### Quoting and Expansion Discipline
 
 ### Variables and Scope
 
