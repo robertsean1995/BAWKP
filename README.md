@@ -300,7 +300,7 @@ Structure and formatting are part of the semantic contract of the methodology. B
 
 ### Script and Block Structures
 
-Scripts follow a predictable structure. These function as the skeletons for all scripts and blocks.
+Scripts follow a predictable structure. The following function as the skeletons for all scripts and blocks.
 
 #### Bash
 
@@ -335,50 +335,39 @@ main "$@"
 #### AWK
 
 ```
-awk -F'\t' '
+awk '
     # -----------------------------
     # Initialization / Configuration
     # -----------------------------
     BEGIN {
         # Explicit execution context
-        OFS = "\t"
+        FS  = "<field-separator>"
+        OFS = "<output-separator>"
 
-        # Initialize accumulators and state
-        record_count = 0
-        error_count  = 0
+        # Initialize state here
+        # state_var = 0
     }
 
     # -----------------------------
     # Core Pattern / Action Logic
     # -----------------------------
-
-    # Handle error records
-    $2 == "ERROR" {
-        error_count++
-        record_count++
-        next
-    }
-
-    # Default record handling
-    {
-        record_count++
-    }
+    # pattern {
+    #     # interpret input
+    # }
 
     # -----------------------------
     # Finalization / Output
     # -----------------------------
     END {
-        print "records", record_count
-        print "errors",  error_count
+        # emit final results
     }
 
     # -----------------------------
     # Helper Functions
     # -----------------------------
-    function normalize_field(value) {
-        gsub(/[[:space:]]+/, " ", value)
-        return value
-    }
+    # function helper(arg) {
+    #     return arg
+    # }
 '
 ```
 
