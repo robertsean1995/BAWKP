@@ -250,11 +250,11 @@ BAWKP addresses these failure modes by construction. By assigning computation, i
 
 # 4 Structure, Syntax, and Semantics
 
-Bash is responsible for orchestration; AWK is responsible for computation. This is the mental model and contract for BAWKP. The preceding sections explained this philosophy and how it applies to this methodology, including an extensive discussion on the responsibility boundaries between Bash and AWK. This section functions as the rulebook for BAWKP and will enumerate from a technical perspective how that philosophy is enforced and applied in practice. The rules in this section exist to preserve readability, correctness, and survivability throughout their lifecycle under operational pressure. Scripts that adhere to these rules qualify as a BAWKP program. Scripts that do not may still function, but they no longer conforms to the methodology.
+Bash is responsible for orchestration; AWK is responsible for computation. This is the mental model and contract for BAWKP. The preceding sections explained this philosophy and how it applies to this methodology, including an extensive discussion on the responsibility boundaries between Bash and AWK. This section functions as the rulebook for BAWKP and will enumerate from a technical perspective how that philosophy is enforced and applied in practice. The rules in this section exist to preserve readability, correctness, and survivability throughout their lifecycle under operational pressure. Scripts that adhere to these rules qualify as a BAWKP program. Scripts that do not may still function, but they no longer conform to the methodology.
 
 ## 4a Integrated Development Environment
 
-Because BAWK relies on explicit structure and clear separation of responsibility, the Integrated Development Environment ("IDE") that is used is an integral part of the methodology’s enforcement surface. An IDE reduces accidental violations of the BAWK contract by making unsafe constructs visible early and by enforcing consistent structure automatically. In practice, this means the IDE is treated as a policy gate for formatting, static analysis, and readability checks. Policies that are applied continuously rather than after failures occur. The recommended IDE is [Visual Studio Code ("VS Code")](https://code.visualstudio.com/) due to its simplicity, language support, available extensions, integrated terminal, and customizability. All of which are suitable for offensive security engineers. For VS Code, BAWK requires only a small number of extensions, but they should be configured strictly. The goal is not to optimize typing speed or developer comfort, but to preserve clarity, predictability, and survivability. Below is a consolidated list of requirements that are considered "non-negotiable" for BAWKP.
+Because BAWK relies on explicit structure and clear separation of responsibility, the Integrated Development Environment ("IDE") that is used is an integral part of the methodology’s enforcement surface. An IDE reduces accidental violations of the BAWK contract by making unsafe constructs visible early and by enforcing consistent structure automatically. In practice, this means the IDE is treated as a policy gate for formatting, static analysis, and readability checks. The recommended IDE is [Visual Studio Code ("VS Code")](https://code.visualstudio.com/) due to its simplicity, language support, available extensions, integrated terminal, and customizability. All of which are suitable for offensive security engineers. For VS Code, BAWK requires only a small number of extensions, but they should be configured strictly. The goal is not to optimize typing speed or developer comfort, but to preserve clarity, predictability, and survivability. Below is a consolidated list of requirements that are considered "non-negotiable" for BAWKP.
 
 ### Required Extensions
 
@@ -296,7 +296,7 @@ The objective of this setup is to have the IDE actively push the developer towar
 
 ## 4b Structure and Formatting
 
-Structure and formatting are part of the semantic contract of the methodology. Bash and AWK operate in environments rich with implicit behavior; consequently, visual structure is one of the few reliable tools available to make intent explicit and misuse visible. Code that is poorly structured may still execute, but it is no longer considered trustworthy under review, refactoring, or operational pressure. Crucially, these rules apply symmetrically to Bash and AWK. One of the most common failures in shell environments is to treat Bash as “real” code while relegating AWK to convoluted one-liners. BAWK rejects this practice and treats AWK is an established programming language within the methodology that is held to the same standards of readability, structure, and explicitness as Bash. Scripts are only as readable as their least readable component. What follows is the unified rule set pertaining to structure and formatting. Rules apply to both languages unless explicitly stated otherwise.
+Structure and formatting are part of the semantic contract of the methodology. Bash and AWK operate in environments rich with implicit behavior; consequently, visual structure is one of the few reliable tools available to make intent explicit and misuse visible. Code that is poorly structured may still execute, but it is no longer considered trustworthy under review, refactoring, or operational pressure. Crucially, these rules apply symmetrically to Bash and AWK. One of the most common failures in shell environments is to treat Bash as “real” code while relegating AWK to convoluted one-liners. BAWK rejects this practice and treats AWK as an established programming language within the methodology that is held to the same standards of readability, structure, and explicitness as Bash. Scripts are only as readable as their least readable component. What follows is the unified rule set pertaining to structure and formatting. Rules apply to both languages unless explicitly stated otherwise.
 
 ### Script and Block Structures
 
@@ -375,7 +375,7 @@ awk '
 
 #### Bash
 
-Every BAWK Bash script begins by explicitly establishing its execution environment. This is non-negotiable.
+Every BAWK Bash script must begin by explicitly establishing its execution environment. This header defines the failure model of the program. Error propagation, unset-variable handling, pipeline correctness, and word-splitting behavior must be explicit and consistent across all scripts. Additional performance-oriented flags may be added later, but the safety baseline must always be present. This is non-negotiable.
 
 ```
 #!/usr/bin/env bash
@@ -383,16 +383,12 @@ set -euo pipefail
 IFS=$'\n\t'
 ```
 
-This header is not boilerplate; it defines the failure model of the program. Error propagation, unset-variable handling, pipeline correctness, and word-splitting behavior must be explicit and consistent across all scripts. Additional performance-oriented flags may be added later, but the safety baseline must always be present.
-
 #### AWK
 
-AWK programs embedded in BAWK scripts must also make their execution context explicit. This includes:
+AWK programs embedded in BAWK scripts must make their execution context explicit. If an AWK program relies on defaults (such as whitespace field splitting), that reliance should be obvious from context and justified by simplicity, not convenience. This includes:
 - Explicit field separators (```-F``` or ```BEGIN { FS = ... }```)
 - Explicit output formatting when output is consumed programmatically
-- Explicit initialization of counters and accumulators
-
-If an AWK program relies on defaults (such as whitespace field splitting), that reliance should be obvious from context and justified by simplicity, not convenience.
+- Explicit initialization of state (e.g. counters, accumulators, maps, etc.)
 
 ### Indentation and Layout
 
@@ -433,7 +429,7 @@ If the structure of a Bash or AWK program requires careful reading to understand
 
 ## 4c Efficiency Constraints
 
-In BAWK, efficiency is not an optimization concern; it is a correctness constraint. Inefficient shell programs are almost always inefficient because responsibilities have leaked across boundaries: Bash is interpreting data, AWK is being fragmented into multiple passes, or external tools are being invoked redundantly. These failures do not merely waste time—they introduce ambiguity, amplify failure modes, and reduce trust in the program’s behavior under operational pressure. The rules in this section are therefore mandatory. They exist to preserve the execution model assumed by BAWK: Bash orchestrates sparingly, AWK computes deterministically in-process, and external tools are invoked only when they provide unique capability. Scripts that violate these rules may still run, but they no longer conform to the methodology.
+In BAWK, efficiency is not an optimization concern; it is a correctness constraint. Inefficient shell programs are almost always inefficient because responsibilities have leaked across boundaries: Bash is interpreting data, AWK is being fragmented into multiple passes, or external tools are being invoked redundantly. These failures do not merely waste time—they introduce ambiguity, amplify failure modes, and reduce trust in the program’s behavior under operational pressure. The rules in this section are therefore mandatory. They exist to preserve the execution model assumed by BAWK: Bash orchestrates sparingly, AWK computes deterministically in-process, and external tools are invoked only when they provide unique capability. 
 
 CHECK WHETHER THE ORDERING OF THIS SECTIONS WORKS BEST.
 
