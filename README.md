@@ -215,9 +215,7 @@ jq -r '.items[] | [.id, .severity] | @tsv' |
 awk -F'\t' '$2 >= 7 { print $1 }'
 ```
 
-In this pipeline, each component has a constrained and explicit role. The structured parser owns syntactic correctness and hierarchical meaning. AWK operates only on the flattened, tabular representation produced by that parser. Bash coordinates the flow but does not interpret the data. No layer assumes responsibility for semantics it cannot enforce. This separation prevents a common class of shell scripting failures in which partial parsing logic silently diverges from the true structure of the input. By delegating syntactic interpretation to appropriate tools and reserving AWK for record-level meaning, BAWKP ensures that each processor operates within a domain it can handle deterministically.
-
-Syntactic processing boundaries also preserve flexibility. External parsers can be replaced or upgraded without affecting downstream computation, as long as the projected data shape remains stable. AWK processors remain focused on classification, aggregation, and transformation, independent of how the original structure was represented. By clearly defining where the authority of AWK ends, BAWKP avoids overextension while preserving the benefits of centralized computation, text processing, and the right to use external tools. 
+In this pipeline, each component has a constrained and explicit role. The structured parser owns syntactic correctness and hierarchical meaning. AWK operates only on the flattened, tabular representation produced by that parser. Bash coordinates the flow but does not interpret the data. No layer assumes responsibility for semantics it cannot enforce. This separation prevents a common class of shell scripting failures in which partial parsing logic silently diverges from the true structure of the input. By delegating syntactic interpretation to appropriate tools and reserving AWK for record-level meaning, BAWKP ensures that each processor operates within a domain it can handle deterministically. Also, syntactic processing boundaries preserve flexibility. External parsers can be replaced or upgraded without affecting downstream computation, as long as the projected data shape remains stable. AWK processors remain focused on classification, aggregation, and transformation, independent of how the original structure was represented. By clearly defining where the authority of AWK ends, BAWKP avoids overextension while preserving the benefits of centralized computation, text processing, and the right to use external tools. 
 
 ## 3d State Authority and Ownership
 
@@ -715,7 +713,7 @@ Each pipeline stage MUST provide unique, non-overlapping value. Chaining tools t
 
 Data should flow through the system once. Multiple passes are permitted only when they materially simplify logic and are explicitly justified.
 
-#### Efficiency Violations and Architectural Drift
+#### Architectural Drift
 
 When a script becomes slow, the first assumption MUST be structural failure—not insufficient optimization. Micro-optimizations do not correct architectural defects. Common causes:
 - Bash has absorbed computation;
