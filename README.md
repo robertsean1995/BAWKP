@@ -46,7 +46,6 @@
 - [Class Structure](#class-structure)
 - [The Structure Rule, Restated](#the-structure-rule-restated)
 - [The Efficiency Rule, Restated](#the-efficiency-rule-restated)
-- [The Antipatterns List, Restated](#the-antipatterns-list-restated)
 - [The Hard Rule, Restated](#the-hard-rule-restated)
 
 <hr>
